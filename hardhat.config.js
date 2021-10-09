@@ -17,16 +17,7 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  defaultNetwork: "chaos",
-  networks: {
-    chaos: {
-      url: process.env.ALCHEMY_MAINNET_RPC_URL,
-      accounts: {
-        mnemonic: process.env.MNEMONIC,
-        accountsBalance: "10000000000000000000000",
-      }
-    },
-  },
+  defaultNetwork: "localhost",
   solidity: "0.6.6",
 }
 
