@@ -2,15 +2,27 @@
 pragma solidity ^0.6.6;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
-//import "@chainlink/contracts/src/v0.7/interfaces/AggregatorProxyInterface.sol";
 
 contract AggregatorMainupulator is AggregatorV3Interface {
-
     // used to mimick orignal aggregator behavior when needed
     AggregatorV3Interface internal originAggr;
+    // underlying mocking aggregator
+    AggregatorV3Interface internal mockAggr;
 
-    constructor(address originAggrAddr) public {
+    // pass mockAggrAddr = 0 if you wish to start mocking or setting up mock contract after this is contract is deployed.
+    constructor(address originAggrAddr, address mockAggrAddr) public {
         originAggr = AggregatorV3Interface(originAggrAddr);
+        mockAggr = AggregatorV3Interface(mockAggrAddr);
+    }
+
+    //used to set underlying mocking aggregator to replace the original behaior
+    function setMockAggregator(address mockAggrAddr) public {
+        mockAggr = AggregatorV3Interface(mockAggrAddr);
+    }
+
+    // used to query underlying mock aggregator
+    function getMockAggrAddress() public view returns (address) {
+        return address(mockAggr);
     }
 
     /*
@@ -21,35 +33,52 @@ contract AggregatorMainupulator is AggregatorV3Interface {
     }
 
     function description() public view override returns (string memory) {
+        if (address(mockAggr) != address(0)) {
+            return mockAggr.description();
+        }
         return originAggr.description();
     }
 
-    function version() view public override returns (uint256) {
+    function version() public view override returns (uint256) {
         return originAggr.version();
     }
 
     // getRoundData and latestRoundData should both raise "No data present"
     // if they do not have data to report, instead of returning unset values
     // which could be misinterpreted as actual reported values.
-    function getRoundData(uint80 _roundId) view public override
+    function getRoundData(uint80 _roundId)
+        public
+        view
+        override
         returns (
             uint80 roundId,
             int256 answer,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
-        ) {
-           return originAggr.getRoundData(_roundId);
+        )
+    {
+        if (address(mockAggr) != address(0)) {
+            return mockAggr.getRoundData(_roundId);
         }
+        return originAggr.getRoundData(_roundId);
+    }
 
-    function latestRoundData() public view override
+    function latestRoundData()
+        public
+        view
+        override
         returns (
             uint80 roundId,
             int256 answer,
             uint256 startedAt,
             uint256 updatedAt,
             uint80 answeredInRound
-        ) {
-            return originAggr.latestRoundData();
+        )
+    {
+        if (address(mockAggr) != address(0)) {
+            return mockAggr.latestRoundData();
         }
+        return originAggr.latestRoundData();
+    }
 }
