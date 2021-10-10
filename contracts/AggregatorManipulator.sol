@@ -13,12 +13,12 @@ contract AggregatorMainupulator is AggregatorV3Interface {
         originAggr = AggregatorV3Interface(originAggrAddr);
         mockAggr = AggregatorV3Interface(0);
     }
-    
+
     //used to set underlying mocking aggregator to replace the original behaior
     function setMockAggregator(address mockAggrAddr) public {
         mockAggr = AggregatorV3Interface(mockAggrAddr);
     }
-    
+
     // used to query underlying mock aggregator
     function getMockAggrAddress() public view returns (address) {
         return address(mockAggr);

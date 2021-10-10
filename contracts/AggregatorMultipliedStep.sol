@@ -4,9 +4,9 @@ pragma solidity ^0.6.6;
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 /*
- * A Mocker contract that consistantly returns the same maunally set values.
+ * A Mocker contract that returns multiplied answer every X blocks as set by values
  */
-contract AggregatorConstant is AggregatorV3Interface {
+contract AggregatorMultipliedStep is AggregatorV3Interface {
     // mocked values returned by contract:
     uint80 internal s_roundId;
     int256 internal s_answer;
@@ -14,18 +14,30 @@ contract AggregatorConstant is AggregatorV3Interface {
     uint256 internal s_updatedAt;
     uint80 internal s_answeredInRound;
 
+    // stepChange - added to base value multiplied by ( blocks changed / stepBlocks) to set a pace to change.
+    int256 internal s_stepChange;
+    // stepBlocks - sets the pace of value change, the amounts of blocks between every change applied to value.
+    uint256 internal s_stepBlocks;
+    // block - the block at the last time the values were changed, where we start the count from.
+    uint256 internal s_block;
+
     constructor(
         uint80 roundId,
         int256 answer,
         uint256 startedAt,
         uint256 updatedAt,
-        uint80 answeredInRound
+        uint80 answeredInRound,
+        int256 stepChange,
+        uint256 stepBlocks
     ) public {
         s_roundId = roundId;
         s_answer = answer;
         s_startedAt = startedAt;
         s_updatedAt = updatedAt;
         s_answeredInRound = answeredInRound;
+        s_stepChange = stepChange;
+        s_stepBlocks = stepBlocks;
+        s_block = block.number;
     }
 
     // Used to modoify mocking values
@@ -34,13 +46,18 @@ contract AggregatorConstant is AggregatorV3Interface {
         int256 answer,
         uint256 startedAt,
         uint256 updatedAt,
-        uint80 answeredInRound
+        uint80 answeredInRound,
+        int256 stepChange,
+        uint256 stepBlocks
     ) public {
         s_roundId = roundId;
         s_answer = answer;
         s_startedAt = startedAt;
         s_updatedAt = updatedAt;
         s_answeredInRound = answeredInRound;
+        s_stepChange = stepChange;
+        s_stepBlocks = stepBlocks;
+        s_block = block.number;
     }
 
     /*
@@ -70,9 +87,12 @@ contract AggregatorConstant is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
+        int256 mocked_answer = s_answer *
+            s_stepChange *
+            (1 + int256(((block.number - s_block) / s_stepBlocks)));
         return (
             _roundId,
-            s_answer,
+            mocked_answer,
             s_startedAt,
             s_updatedAt,
             s_answeredInRound
@@ -91,9 +111,12 @@ contract AggregatorConstant is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
+        int256 mocked_answer = s_answer *
+            s_stepChange *
+            (1 + int256(((block.number - s_block) / s_stepBlocks)));
         return (
             s_roundId,
-            s_answer,
+            mocked_answer,
             s_startedAt,
             s_updatedAt,
             s_answeredInRound
