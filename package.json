@@ -15,6 +15,7 @@
     "@openzeppelin/test-helpers": "^0.5.9",
     "axios": "^0.22.0",
     "cli-table": "^0.3.6",
+    "env-cmd": "^10.1.0",
     "hardhat-deploy": "^0.7.0-beta.28"
   }
 }
