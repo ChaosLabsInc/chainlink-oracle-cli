@@ -9,9 +9,10 @@ contract AggregatorMainupulator is AggregatorV3Interface {
     // underlying mocking aggregator
     AggregatorV3Interface internal mockAggr;
 
-    constructor(address originAggrAddr) public {
+    // pass mockAggrAddr = 0 if you wish to start mocking or setting up mock contract after this is contract is deployed.
+    constructor(address originAggrAddr, address mockAggrAddr) public {
         originAggr = AggregatorV3Interface(originAggrAddr);
-        mockAggr = AggregatorV3Interface(0);
+        mockAggr = AggregatorV3Interface(mockAggrAddr);
     }
 
     //used to set underlying mocking aggregator to replace the original behaior
