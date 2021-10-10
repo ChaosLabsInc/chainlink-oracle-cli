@@ -4,8 +4,7 @@ pragma solidity ^0.6.6;
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 contract AggregatorConstant is AggregatorV3Interface {
-
-
+    // mocked values returned by contract:
     uint80 internal s_roundId;
     int256 internal s_answer;
     uint256 internal s_startedAt;
