@@ -14,25 +14,7 @@ contract ChaosAggregator is AggregatorV3Interface {
      * Aggregator: ETH/USD
      * Address: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
      */
-    constructor() public {
-        priceFeed = AggregatorV3Interface(
-            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
-        );
-    }
-
-    /**
-     * Returns the latest price
-     */
-    function getLatestPrice() public view returns (int256) {
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeed.latestRoundData();
-        return 0;
-    }
+    constructor() public {}
 
     /**
      * Returns the latest price
@@ -64,7 +46,7 @@ contract ChaosAggregator is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        return (1, 0, 10, 10, 10);
+        return (_roundId, 0, 10, 10, 10);
     }
 
     function latestRoundData()
@@ -79,6 +61,6 @@ contract ChaosAggregator is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        return (1, 0, 10, 10, 10);
+        return (1, 7, 10, 10, 10);
     }
 }

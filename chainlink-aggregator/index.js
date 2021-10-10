@@ -30,14 +30,7 @@ module.exports = {
         signer,
         newAggregatorContractAddress
     ) {
-        try {
-            await
-                PROXY_AGG_CONTRACT_INSTANCE
-                    .connect(signer)
-                    .proposeAggregator(newAggregatorContractAddress);
-        } catch (e) {
-            throw new Error("Failed to propose new aggregator...", e);
-        }
+
     },
     proposeAndConfirmAggregator: async function proposeAndConfirmAggregator(
         PROXY_AGG_CONTRACT_INSTANCE,

@@ -1,5 +1,5 @@
-const { ethers } = require("hardhat");
 const { utils } = require("ethers");
+const { ethers } = require("hardhat");
 
 const {
     ETH_WHALE_ADDRESS
@@ -10,20 +10,33 @@ module.exports = {
         const bal = await ethers.provider.getBalance(addy);
         return ethers.utils.formatEther(bal);
     },
-    genEthForAccount: async function genEthForAccount(to) {
-        const signer = await ethers.provider.getSigner(ETH_WHALE_ADDRESS);
-        await signer.sendTransaction({
-            from: ETH_WHALE_ADDRESS,
-            to: to,
-            value: utils.parseEther("10"),
-        });
-
+    sendEthFromTo: async function sendEthFromTo(from, to) {
+        try {
+            await hre.network.provider.request({
+                method: "hardhat_impersonateAccount",
+                params: [from]
+            });
+            const signer = await ethers.provider.getSigner(from);
+            await signer.sendTransaction({
+                from,
+                to,
+                value: utils.parseEther("10"),
+            });
+            await hre.network.provider.request({
+                method: "hardhat_stopImpersonatingAccount",
+                params: [from]
+            });
+        } catch (e) {
+            throw new Error("Failed to send Chainlink aggregator owner ETH...", e);
+        }
     },
-    impersonateAccount: async function impersonateAccount(impersonateMe) {
+    impersonateAndGetSigner: async function impersonateAndGetSigner(impersonateMe) {
         await hre.network.provider.request({
             method: "hardhat_impersonateAccount",
             params: [impersonateMe]
         });
+        const ownerSigner = await ethers.getSigner(impersonateMe);
+        return ownerSigner;
     },
     stopImpersonateAccount: async function stopImpersonateAccount(stopImpersonateMe) {
         await hre.network.provider.request({
