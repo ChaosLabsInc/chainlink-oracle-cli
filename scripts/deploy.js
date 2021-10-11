@@ -66,20 +66,20 @@ async function deployManiupulatorContract(proxyAggregatorAddress, mockerAggregat
 }
 
 async function deployMockerContracts(data, step, pace) {
-  const [aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep] = await Promise.all([
+  const [aggregatorConstant, aggregatorConstantStep, AggregatordVolatileStep] = await Promise.all([
     deployMockerContract("AggregatorConstant", data, step, pace),
     deployMockerContract("AggregatorConstantStep", data, step, pace),
-    deployMockerContract("AggregatorMultipliedStep", data, step, pace),
+    deployMockerContract("AggregatordVolatileStep", data, step, pace),
   ]);
   ChaosUtils.logTable(
-    ["aggregatorConstant", "aggregatorConstantStep", "aggregatorMultipliedStep"],
-    [aggregatorConstant.address, aggregatorConstantStep.address, aggregatorMultipliedStep.address]
+    ["aggregatorConstant", "aggregatorConstantStep", "AggregatordVolatileStep"],
+    [aggregatorConstant.address, aggregatorConstantStep.address, AggregatordVolatileStep.address]
   );
 
   return {
     aggregatorConstant,
     aggregatorConstantStep,
-    aggregatorMultipliedStep,
+    AggregatordVolatileStep,
   };
 }
 
@@ -117,31 +117,47 @@ async function fetchValue() {
   console.log("Price data for ETH: ", ethPrice.toString());
 }
 
-async function main() {
-  let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS; //TODO input
+async function demo() {
+  let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS;
   const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
   const data = await originAggregator.latestRoundData();
-  const { aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep } = await deployMockerContracts(
+  const { aggregatorConstant, aggregatorConstantStep, AggregatordVolatileStep } = await deployMockerContracts(
     data,
-    1000000,
-    1
-  ); //TODO input
+    0,
+    1000,
+    7
+  );
   const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorConstantStep.address);
   ChaosUtils.logTable(
     ["aggregatorManipulator", "origin manipulator"],
     [aggregatorManipulator.address, currentProxyAddress]
   );
-
   await fetchValue();
   await hijackAggregator(originAggregator, aggregatorManipulator);
   await fetchValue();
-  await fetchValue();
-  await fetchValue();
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+module.exports = {
+  deployMockerContracts: async function (data, step, pace) {
+    await deployMockerContracts(data, step, pace);
+  },
+  deployManiupulatorContract: async function (proxyAggregatorAddress, mockerAggregatorAddress) {
+    await deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress);
+  },
+  deployManiupulatorContract: async function (originAggregator, aggregatorManipulator) {
+    await hijackAggregator(originAggregator, aggregatorManipulator);
+  },
+  fetchValue: async function () {
+    await fetchValue();
+  },
+  demo: async function () {
+    await demo();
+  },
+};
+
+// demo()
+//   .then(() => process.exit(0))
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   });
