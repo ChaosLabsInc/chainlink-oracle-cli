@@ -23,7 +23,9 @@ module.exports = {
     clear();
     console.log(chalk.green("🎉 ✨ 🔥 Hijacked Chainlink Oracles by: 🎉 ✨ 🔥"));
     console.log(chalk.blue(figlet.textSync("Chaos Labs")));
-    await this.selectTokenPairPricesToMock();
+    //await this.selectTokenPairPricesToMock();
+    //TODO
+    await delpoyer.demo();
   },
   selectTokenPairPricesToMock: async function selectTokenPairPricesToMock() {
     // ******************** GET PRICE FEED ********************

@@ -65,11 +65,11 @@ async function deployManiupulatorContract(proxyAggregatorAddress, mockerAggregat
   return deployer;
 }
 
-async function deployAllMockerContracts(data, step, pace) {
+async function deployAllMockerContracts(data, value, step, pace) {
   const [aggregatorConstant, aggregatorIncremental, AggregatorVolatile] = await Promise.all([
-    deployMockerContract("AggregatorConstant", data, step, pace),
-    deployMockerContract("AggregatorIncremental", data, step, pace),
-    deployMockerContract("AggregatorVolatile", data, step, pace),
+    deployMockerContract("AggregatorConstant", data, value, step, pace),
+    deployMockerContract("AggregatorIncremental", data, value, step, pace),
+    deployMockerContract("AggregatorVolatile", data, value, step, pace),
   ]);
   ChaosUtils.logTable(
     ["aggregatorConstant", "aggregatorIncremental", "AggregatorVolatile"],
