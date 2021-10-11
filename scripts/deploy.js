@@ -1,11 +1,17 @@
 const { ethers } = require("hardhat");
-const etherJS = require("ethers");
 const ChaosUtils = require("../chaos-utils");
 const Constants = require("../constants");
 const AgentsHelper = require("../agents");
 const ChainlinkProxyAggregator = require("../chainlink-aggregator");
 
-async function deployMockerContract(contractName, lastRoundData, step, pace) {
+/*
+ * @contractName - the name of the mocker contract being deployed.
+ * @lastRoundData - real data from the orignal contract of the last round.
+ * @mocked - initial value for mocking, if a negative value is provided contract will default to original.
+ * @step - the change in value (incremental/multiplier) every 'pace' blocks.
+ * @pace - the number of blocks between each value change, counter starts from contract deployment.
+ */
+async function deployMockerContract(contractName, lastRoundData, mocked, step, pace) {
   const mockerContract = await ethers.getContractFactory(contractName);
   var constructor, deployer;
   fragments = mockerContract.interface.fragments;
@@ -22,7 +28,7 @@ async function deployMockerContract(contractName, lastRoundData, step, pace) {
     case 5:
       deployer = await mockerContract.deploy(
         lastRoundData.roundId,
-        step < 0 ? lastRoundData.answer : step,
+        mocked < 0 ? lastRoundData.answer : mocked,
         lastRoundData.startedAt,
         lastRoundData.updatedAt,
         lastRoundData.answeredInRound
@@ -31,7 +37,7 @@ async function deployMockerContract(contractName, lastRoundData, step, pace) {
     case 7:
       deployer = await mockerContract.deploy(
         lastRoundData.roundId,
-        lastRoundData.answer,
+        mocked < 0 ? lastRoundData.answer : mocked,
         lastRoundData.startedAt,
         lastRoundData.updatedAt,
         lastRoundData.answeredInRound,
@@ -47,6 +53,11 @@ async function deployMockerContract(contractName, lastRoundData, step, pace) {
 }
 
 // provide "0x000000000000000000000000000000000000dEaD" address for orignal behaior, burn out address.
+/*
+ * @proxyAggregatorAddress - the address of the original proxy aggregator contract being mocked
+ * @mockerAggregatorAddress - the address of the mocker contract, if a burn address is provided then
+ * the default behavior remains ["0x000000000000000000000000000000000000dEaD"]
+ */
 async function deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress) {
   const AggregatorManipulator = await ethers.getContractFactory("AggregatorManipulator");
   deployer = await AggregatorManipulator.deploy(proxyAggregatorAddress, mockerAggregatorAddress);
@@ -69,24 +80,10 @@ async function deployMockerContracts(data, step, pace) {
     aggregatorConstant,
     aggregatorConstantStep,
     aggregatorMultipliedStep,
-    // aggregatorManipulator,
   };
 }
 
-async function main() {
-  let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS; //TODO input
-  const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
-  const data = await originAggregator.latestRoundData();
-  const { aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep } = await deployMockerContracts(
-    data,
-    1,
-    1
-  ); //TODO input
-  const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorConstant.address);
-  ChaosUtils.logTable(
-    ["aggregatorManipulator", "origin manipulator"],
-    [aggregatorManipulator.address, currentProxyAddress]
-  );
+async function hijackAggregator(originAggregator, aggregatorManipulator) {
   const chainlinkAggregatorOwner = await originAggregator.owner();
   await AgentsHelper.sendEthFromTo(Constants.ETH_WHALE_ADDRESS, chainlinkAggregatorOwner);
   await hre.network.provider.request({
@@ -108,7 +105,9 @@ async function main() {
   } catch (e) {
     throw new Error("Failed to confirm new aggregator...", e);
   }
+}
 
+async function fetchValue() {
   const PriceConsumerV3 = await ethers.getContractFactory("PriceConsumerV3");
   const priceConsumerV3 = await PriceConsumerV3.deploy();
   await priceConsumerV3.deployed();
@@ -116,6 +115,28 @@ async function main() {
   console.log("Fetching price...");
   ethPrice = await priceConsumerV3.getLatestPrice();
   console.log("Price data for ETH: ", ethPrice.toString());
+}
+
+async function main() {
+  let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS; //TODO input
+  const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
+  const data = await originAggregator.latestRoundData();
+  const { aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep } = await deployMockerContracts(
+    data,
+    1000000,
+    1
+  ); //TODO input
+  const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorConstantStep.address);
+  ChaosUtils.logTable(
+    ["aggregatorManipulator", "origin manipulator"],
+    [aggregatorManipulator.address, currentProxyAddress]
+  );
+
+  await fetchValue();
+  await hijackAggregator(originAggregator, aggregatorManipulator);
+  await fetchValue();
+  await fetchValue();
+  await fetchValue();
 }
 
 main()
