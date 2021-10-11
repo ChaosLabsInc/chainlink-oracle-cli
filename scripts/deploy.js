@@ -1,88 +1,106 @@
 const { ethers } = require("hardhat");
+const etherJS = require("ethers");
 const ChaosUtils = require("../chaos-utils");
 const Constants = require("../constants");
 const AgentsHelper = require("../agents");
 const ChainlinkProxyAggregator = require("../chainlink-aggregator");
 
-async function deployContracts(proxyAggregatorAddress) {
-  const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(proxyAggregatorAddress);
-  const data = await originAggregator.latestRoundData();
-  console.log(data.roundId, data.answer, data.startedAt, data.updatedAt, data.answeredInRound); //TODO debug
-  const [AggregatorConstant, AggregatorConstantStep, AggregatorMultipliedStep, AggregatorManipulator] =
-    await Promise.all([
-      ethers.getContractFactory("AggregatorConstant"),
-      ethers.getContractFactory("AggregatorConstantStep"),
-      ethers.getContractFactory("AggregatorMultipliedStep"),
-      ethers.getContractFactory("AggregatorManipulator"),
-    ]);
+async function deployMockerContract(contractName, lastRoundData, step, pace) {
+  const mockerContract = await ethers.getContractFactory(contractName);
+  var constructor, deployer;
+  fragments = mockerContract.interface.fragments;
+  for (i = 0; i < fragments.length; i++) {
+    if (fragments[i].type == "constructor") {
+      constructor = fragments[i];
+      break;
+    }
+  }
+  if (constructor == undefined) {
+    return null;
+  }
+  switch (constructor.inputs.length) {
+    case 5:
+      deployer = await mockerContract.deploy(
+        lastRoundData.roundId,
+        step < 0 ? lastRoundData.answer : step,
+        lastRoundData.startedAt,
+        lastRoundData.updatedAt,
+        lastRoundData.answeredInRound
+      );
+      break;
+    case 7:
+      deployer = await mockerContract.deploy(
+        lastRoundData.roundId,
+        lastRoundData.answer,
+        lastRoundData.startedAt,
+        lastRoundData.updatedAt,
+        lastRoundData.answeredInRound,
+        step,
+        pace
+      );
+      break;
+    default:
+      throw "unsupported length";
+  }
+  await deployer.deployed();
+  return deployer;
+}
 
-  const [aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep, aggregatorManipulator] =
-    await Promise.all([
-      AggregatorConstant.deploy(data.roundId, data.answer, data.startedAt, data.updatedAt, data.answeredInRound),
-      AggregatorConstantStep.deploy(
-        data.roundId,
-        data.answer,
-        data.startedAt,
-        data.updatedAt,
-        data.answeredInRound,
-        0,
-        0
-      ),
-      AggregatorMultipliedStep.deploy(
-        data.roundId,
-        data.answer,
-        data.startedAt,
-        data.updatedAt,
-        data.answeredInRound,
-        0,
-        0
-      ),
-      AggregatorManipulator.deploy(proxyAggregatorAddress, 0),
-    ]);
-  await Promise.all([
-    aggregatorConstant.deployed(),
-    aggregatorConstantStep.deployed(),
-    aggregatorMultipliedStep.deployed(),
-    aggregatorManipulator.deployed(),
+// provide "0x000000000000000000000000000000000000dEaD" address for orignal behaior, burn out address.
+async function deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress) {
+  const AggregatorManipulator = await ethers.getContractFactory("AggregatorManipulator");
+  deployer = await AggregatorManipulator.deploy(proxyAggregatorAddress, mockerAggregatorAddress);
+  await deployer.deployed();
+  return deployer;
+}
+
+async function deployMockerContracts(data, step, pace) {
+  const [aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep] = await Promise.all([
+    deployMockerContract("AggregatorConstant", data, step, pace),
+    deployMockerContract("AggregatorConstantStep", data, step, pace),
+    deployMockerContract("AggregatorMultipliedStep", data, step, pace),
   ]);
   ChaosUtils.logTable(
-    ["aggregatorConstant", "aggregatorConstantStep", "aggregatorMultipliedStep", "aggregatorManipulator"],
-    [
-      aggregatorConstant.address,
-      aggregatorConstantStep.address,
-      aggregatorMultipliedStep.address,
-      aggregatorManipulator.address,
-    ]
+    ["aggregatorConstant", "aggregatorConstantStep", "aggregatorMultipliedStep"],
+    [aggregatorConstant.address, aggregatorConstantStep.address, aggregatorMultipliedStep.address]
   );
 
   return {
     aggregatorConstant,
     aggregatorConstantStep,
     aggregatorMultipliedStep,
-    aggregatorManipulator,
+    // aggregatorManipulator,
   };
 }
 
 async function main() {
-  const { aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep, aggregatorManipulator } =
-    await deployContracts(Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS);
-
-  const chainlinkAggregatorOwner = await PROXY_AGG_CONTRACT_INSTANCE.owner();
+  let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS; //TODO input
+  const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
+  const data = await originAggregator.latestRoundData();
+  const { aggregatorConstant, aggregatorConstantStep, aggregatorMultipliedStep } = await deployMockerContracts(
+    data,
+    1,
+    1
+  ); //TODO input
+  const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorConstant.address);
+  ChaosUtils.logTable(
+    ["aggregatorManipulator", "origin manipulator"],
+    [aggregatorManipulator.address, currentProxyAddress]
+  );
+  const chainlinkAggregatorOwner = await originAggregator.owner();
   await AgentsHelper.sendEthFromTo(Constants.ETH_WHALE_ADDRESS, chainlinkAggregatorOwner);
   await hre.network.provider.request({
     method: "hardhat_impersonateAccount",
     params: [chainlinkAggregatorOwner],
   });
   const chainlinkAggOwnerSigner = await ethers.getSigner(chainlinkAggregatorOwner);
-
   try {
-    await PROXY_AGG_CONTRACT_INSTANCE.connect(chainlinkAggOwnerSigner).proposeAggregator(chaosAggregator.address);
+    await originAggregator.connect(chainlinkAggOwnerSigner).proposeAggregator(aggregatorManipulator.address);
   } catch (e) {
     throw new Error("Failed to propose new aggregator...", e);
   }
-
   try {
-    await PROXY_AGG_CONTRACT_INSTANCE.connect(chainlinkAggOwnerSigner).confirmAggregator(chaosAggregator.address);
+    await originAggregator.connect(chainlinkAggOwnerSigner).confirmAggregator(aggregatorManipulator.address);
     await hre.network.provider.request({
       method: "hardhat_stopImpersonatingAccount",
       params: [chainlinkAggregatorOwner],
@@ -90,6 +108,10 @@ async function main() {
   } catch (e) {
     throw new Error("Failed to confirm new aggregator...", e);
   }
+
+  const PriceConsumerV3 = await ethers.getContractFactory("PriceConsumerV3");
+  const priceConsumerV3 = await PriceConsumerV3.deploy();
+  await priceConsumerV3.deployed();
 
   console.log("Fetching price...");
   ethPrice = await priceConsumerV3.getLatestPrice();
