@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 /*
  * A Mocker contract that returns incremental/decremental answer every X blocks as set by values
  */
-contract AggregatorConstantStep is AggregatorV3Interface {
+contract AggregatorIncremental is AggregatorV3Interface {
     // mocked values returned by contract:
     uint80 internal s_roundId;
     int256 internal s_answer;

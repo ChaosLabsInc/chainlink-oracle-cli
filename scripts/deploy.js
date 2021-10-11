@@ -65,21 +65,21 @@ async function deployManiupulatorContract(proxyAggregatorAddress, mockerAggregat
   return deployer;
 }
 
-async function deployMockerContracts(data, step, pace) {
-  const [aggregatorConstant, aggregatorConstantStep, AggregatordVolatileStep] = await Promise.all([
+async function deployAllMockerContracts(data, step, pace) {
+  const [aggregatorConstant, aggregatorIncremental, AggregatorVolatile] = await Promise.all([
     deployMockerContract("AggregatorConstant", data, step, pace),
-    deployMockerContract("AggregatorConstantStep", data, step, pace),
-    deployMockerContract("AggregatordVolatileStep", data, step, pace),
+    deployMockerContract("AggregatorIncremental", data, step, pace),
+    deployMockerContract("AggregatorVolatile", data, step, pace),
   ]);
   ChaosUtils.logTable(
-    ["aggregatorConstant", "aggregatorConstantStep", "AggregatordVolatileStep"],
-    [aggregatorConstant.address, aggregatorConstantStep.address, AggregatordVolatileStep.address]
+    ["aggregatorConstant", "aggregatorIncremental", "AggregatorVolatile"],
+    [aggregatorConstant.address, aggregatorIncremental.address, AggregatorVolatile.address]
   );
 
   return {
     aggregatorConstant,
-    aggregatorConstantStep,
-    AggregatordVolatileStep,
+    aggregatorIncremental,
+    AggregatorVolatile,
   };
 }
 
@@ -121,13 +121,13 @@ async function demo() {
   let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS;
   const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
   const data = await originAggregator.latestRoundData();
-  const { aggregatorConstant, aggregatorConstantStep, AggregatordVolatileStep } = await deployMockerContracts(
+  const { aggregatorConstant, aggregatorIncremental, AggregatorVolatile } = await deployAllMockerContracts(
     data,
     0,
     1000,
     7
   );
-  const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorConstantStep.address);
+  const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorIncremental.address);
   ChaosUtils.logTable(
     ["aggregatorManipulator", "origin manipulator"],
     [aggregatorManipulator.address, currentProxyAddress]
@@ -137,15 +137,30 @@ async function demo() {
   await fetchValue();
 }
 
+async function MockContract(contractName, currentProxyAddress, value, change, pace) {
+  const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
+  const data = await originAggregator.latestRoundData();
+  const mockerContract = await deployMockerContract(contractName, data, value, change, pace);
+  const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, mockerContract.address);
+  ChaosUtils.logTable(
+    ["Aggregator Manipulator", "Mocker Aggregator", "Origin Aggregator"],
+    [aggregatorManipulator.address, mockerContract.address, currentProxyAddress]
+  );
+  await hijackAggregator(originAggregator, aggregatorManipulator);
+}
+
 module.exports = {
-  deployMockerContracts: async function (data, step, pace) {
-    await deployMockerContracts(data, step, pace);
+  MockContract: async function (contractName, currentProxyAddress, value, change, pace) {
+    await MockContract(contractName, currentProxyAddress, value, change, pace);
+  },
+  deployAllMockerContracts: async function (data, step, pace) {
+    await deployAllMockerContracts(data, step, pace);
+  },
+  deployMockerContract: async function (contractName, data, step, pace) {
+    await deployMockerContract(contractName, data, mocked, step, pace);
   },
   deployManiupulatorContract: async function (proxyAggregatorAddress, mockerAggregatorAddress) {
     await deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress);
-  },
-  deployManiupulatorContract: async function (originAggregator, aggregatorManipulator) {
-    await hijackAggregator(originAggregator, aggregatorManipulator);
   },
   fetchValue: async function () {
     await fetchValue();
@@ -154,10 +169,3 @@ module.exports = {
     await demo();
   },
 };
-
-// demo()
-//   .then(() => process.exit(0))
-//   .catch((error) => {
-//     console.error(error);
-//     process.exit(1);
-//   });
