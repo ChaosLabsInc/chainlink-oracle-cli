@@ -1,4 +1,5 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
+const { ethers } = hre;
 const ChaosUtils = require("../chaos-utils");
 const Constants = require("../constants");
 const AgentsHelper = require("../agents");

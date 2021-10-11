@@ -3,6 +3,7 @@ const clear = require("clear");
 const figlet = require("figlet");
 const inquirer = require("inquirer");
 const PriceFeeds = require("../chainlink-data-feeds");
+const { deployMockerContract } = require("../scripts/deploy");
 const delpoyer = require("../scripts/deploy");
 
 const QUESTION_PROMPT_NAMES = {
@@ -23,9 +24,7 @@ module.exports = {
     clear();
     console.log(chalk.green("🎉 ✨ 🔥 Hijacked Chainlink Oracles by: 🎉 ✨ 🔥"));
     console.log(chalk.blue(figlet.textSync("Chaos Labs")));
-    //await this.selectTokenPairPricesToMock();
-    //TODO
-    await delpoyer.demo();
+    await this.selectTokenPairPricesToMock();
   },
   selectTokenPairPricesToMock: async function selectTokenPairPricesToMock() {
     // ******************** GET PRICE FEED ********************
@@ -69,6 +68,7 @@ module.exports = {
         )} at address ${originAddress}`
       )
     );
+    await delpoyer.fetchValue(); //TODO - pass in chosen currency and update contract to support dynmic currency
     await delpoyer.MockContract(name, originAddress, 0, 0, 0);
 
     console.log(chalk.blue(`Let's get to work 💼 😏 ...`));
