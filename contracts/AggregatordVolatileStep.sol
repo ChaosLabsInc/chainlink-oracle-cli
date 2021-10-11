@@ -68,7 +68,7 @@ contract AggregatordVolatileStep is AggregatorV3Interface {
     }
 
     function description() public view override returns (string memory) {
-        return "constant value aggregator mocker";
+        return "voltaile value aggregator mocker";
     }
 
     function version() public view override returns (uint256) {
@@ -87,9 +87,14 @@ contract AggregatordVolatileStep is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        int256 mocked_answer = s_answer *
-            s_stepChange *
-            (1 + int256(((block.number - s_block) / s_stepBlocks)));
+        int256 direction = 1;
+        bool NegativeCycle = ((block.number - s_block) % (2 * s_stepBlocks)) >
+            s_stepBlocks;
+        if (NegativeCycle) {
+            direction = -1;
+        }
+        int256 pace = int256(((block.number - s_block) / s_stepBlocks));
+        int256 mocked_answer = s_answer + direction * s_stepChange * pace;
         return (
             _roundId,
             mocked_answer,
@@ -111,9 +116,9 @@ contract AggregatordVolatileStep is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        int256 mocked_answer = s_answer *
+        int256 mocked_answer = s_answer +
             s_stepChange *
-            (1 + int256(((block.number - s_block) / s_stepBlocks)));
+            int256(((block.number - s_block) / s_stepBlocks));
         return (
             s_roundId,
             mocked_answer,

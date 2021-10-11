@@ -68,7 +68,7 @@ contract AggregatorConstantStep is AggregatorV3Interface {
     }
 
     function description() public view override returns (string memory) {
-        return "constant value aggregator mocker";
+        return "changing value aggregator mocker";
     }
 
     function version() public view override returns (uint256) {
@@ -87,9 +87,8 @@ contract AggregatorConstantStep is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        int256 mocked_answer = s_answer +
-            s_stepChange *
-            int256(((block.number - s_block) / s_stepBlocks));
+        int256 pace = int256(((block.number - s_block) / s_stepBlocks));
+        int256 mocked_answer = s_answer + s_stepChange * pace;
         return (
             _roundId,
             mocked_answer,
