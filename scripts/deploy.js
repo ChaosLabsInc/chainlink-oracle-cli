@@ -3,6 +3,7 @@ const { ethers } = hre;
 const ChaosUtils = require("../chaos-utils");
 const Constants = require("../constants");
 const AgentsHelper = require("../agents");
+const chalk = require("chalk");
 const ChainlinkProxyAggregator = require("../chainlink-aggregator");
 
 /*
@@ -108,14 +109,15 @@ async function hijackAggregator(originAggregator, aggregatorManipulator) {
   }
 }
 
-async function fetchValue() {
+async function fetchValue(aggergatorAddress) {
   const PriceConsumerV3 = await ethers.getContractFactory("PriceConsumerV3");
-  const priceConsumerV3 = await PriceConsumerV3.deploy();
+  const priceConsumerV3 = await PriceConsumerV3.deploy(aggergatorAddress);
   await priceConsumerV3.deployed();
 
   console.log("Fetching price...");
-  ethPrice = await priceConsumerV3.getLatestPrice();
-  console.log("Price data for ETH: ", ethPrice.toString());
+  price = await priceConsumerV3.getLatestPrice();
+  console.log(chalk.blue("Price: ", price.toString()));
+  return price;
 }
 
 async function demo() {
@@ -133,9 +135,9 @@ async function demo() {
     ["aggregatorManipulator", "origin manipulator"],
     [aggregatorManipulator.address, currentProxyAddress]
   );
-  await fetchValue();
+  await fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
   await hijackAggregator(originAggregator, aggregatorManipulator);
-  await fetchValue();
+  await fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
 }
 
 async function MockContract(contractName, currentProxyAddress, value, change, pace) {
@@ -163,8 +165,8 @@ module.exports = {
   deployManiupulatorContract: async function (proxyAggregatorAddress, mockerAggregatorAddress) {
     await deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress);
   },
-  fetchValue: async function () {
-    await fetchValue();
+  fetchValue: async function (aggergatorAddress) {
+    await fetchValue(aggergatorAddress);
   },
   demo: async function () {
     await demo();

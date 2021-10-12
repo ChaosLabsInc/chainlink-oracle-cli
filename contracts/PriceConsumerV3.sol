@@ -10,10 +10,12 @@ contract PriceConsumerV3 {
      * Aggregator: ETH/USD
      * Address: 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
      */
-    constructor() public {
-        priceFeed = AggregatorV3Interface(
-            0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
-        );
+    constructor(address aggregatorAddress) public {
+        priceFeed = AggregatorV3Interface(aggregatorAddress);
+    }
+
+    function setAggregator(address aggregatorAddress) public {
+        priceFeed = AggregatorV3Interface(aggregatorAddress);
     }
 
     /**
