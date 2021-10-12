@@ -32,20 +32,32 @@ module.exports = {
   selectTokenPairPricesToMock: async function selectTokenPairPricesToMock() {
     // ******************** GET PRICE FEED ********************
     const pricefeeds = await PriceFeeds.getEthereumProxiesForNetwork();
-    const subsetPFs = pricefeeds.slice(0, 4).map((pair, i) => `${i}. ${pair.pair}`);
-
-    subsetPFs.push("5. Search specific pairs");
+    const feedChoices = pricefeeds.map((pair, i) => `${i}. ${pair.pair}`);
+    const subsetPFs = feedChoices.slice(0, 5);
+    subsetPFs.push("6. View full list");
     let questions = [
       {
         type: "rawlist",
         name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
         message: "Select price feeds:",
         choices: subsetPFs,
-        default: [],
       },
     ];
-    const pairSelection = await inquirer.prompt(questions);
-    const pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
+    let pairSelection = await inquirer.prompt(questions);
+    let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
+    if (targetKey(pairSelectionParsed) == 6) {
+      //more options:
+      let questions = [
+        {
+          type: "rawlist",
+          name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
+          message: "Select price feeds:",
+          choices: feedChoices,
+        },
+      ];
+      pairSelection = await inquirer.prompt(questions);
+      pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
+    }
     console.log(chalk.blue("You selected " + pairSelectionParsed));
 
     // ******************** GET MOCK FN ********************
@@ -55,7 +67,6 @@ module.exports = {
         name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION,
         message: "Select a function for the Mock Oracle",
         choices: ["Constant", "Incremental", "Volatile", "Original"],
-        default: [],
       },
     ];
     const mockFnSelection = await inquirer.prompt(questions);
