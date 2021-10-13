@@ -3,8 +3,8 @@ const clear = require("clear");
 const figlet = require("figlet");
 const inquirer = require("inquirer");
 const PriceFeeds = require("../chainlink-data-feeds");
-const { deployMockerContract } = require("../scripts/deploy");
-const delpoyer = require("../scripts/deploy");
+const { deployMockerContract } = require("../deploy/deploy");
+const delpoyer = require("../deploy/deploy");
 
 const QUESTION_PROMPT_NAMES = {
   HIJACKABLE_FEEDS: "Hijackable Price Feeds",
