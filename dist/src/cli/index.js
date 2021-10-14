@@ -129,4 +129,4 @@ module.exports = {
         });
     },
 };
-//# sourceMappingURL=cli.js.map
+//# sourceMappingURL=index.js.map
