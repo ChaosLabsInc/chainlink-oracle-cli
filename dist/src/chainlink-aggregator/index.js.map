@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../src/chainlink-aggregator/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;AAAA,qCAAiC;AACjC,qDAA6B;AAE7B,iBAAS;IACP,8BAA8B,EAAE,SAAe,8BAA8B,CAAC,0BAAkC;;YAC9G,OAAO,IAAI,gBAAM,CAAC,QAAQ,CAAC,0BAA0B,EAAE,aAAG,CAAC,wBAAwB,EAAE,gBAAM,CAAC,QAAQ,CAAC,CAAC;QACxG,CAAC;KAAA;CACF,CAAC"}

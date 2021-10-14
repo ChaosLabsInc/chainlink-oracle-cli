@@ -1,10 +1,11 @@
-const chalk = require("chalk");
-const clear = require("clear");
-const figlet = require("figlet");
-const inquirer = require("inquirer");
-const PriceFeeds = require("../chainlink-data-feeds");
-const { deployMockerContract } = require("../deploy/deploy");
-const delpoyer = require("../deploy/deploy");
+// import { ethers } from "hardhat";
+import delpoyer from "../deploy/deploy";
+import figlet from "figlet";
+import clear from "clear";
+import inquirer from "inquirer";
+import PriceFeeds from "../chainlink-data-feeds";
+import chalk from "chalk";
+// import ChainlinkProxyAggregator from "../chainlink-aggregator";
 
 const QUESTION_PROMPT_NAMES = {
   HIJACKABLE_FEEDS: "Hijackable Price Feeds",
@@ -14,11 +15,11 @@ const QUESTION_PROMPT_NAMES = {
   MOCK_AGGREGATOR_CHANGE_PACE: "Mock Change Pace",
 };
 
-function contactName(name) {
+function contactName(name: string) {
   return "Aggregator" + name;
 }
 
-function targetKey(pairSelectionParsed) {
+function targetKey(pairSelectionParsed: string) {
   return pairSelectionParsed.split(".")[0];
 }
 
@@ -32,20 +33,27 @@ module.exports = {
   selectTokenPairPricesToMock: async function selectTokenPairPricesToMock() {
     // ******************** GET PRICE FEED ********************
     const pricefeeds = await PriceFeeds.getEthereumProxiesForNetwork();
-    const feedChoices = pricefeeds.map((pair, i) => `${i}. ${pair.pair}`);
+    const feedChoices = pricefeeds.map((pair: any, i: number) => `${i}. ${pair.pair}`);
     const subsetPFs = feedChoices.slice(0, 5);
     subsetPFs.push("6. View full list");
-    let questions = [
+    let questions: {
+      type: string;
+      name: string;
+      message: string;
+      choices?: string[];
+      default?: number[];
+    }[] = [
       {
         type: "rawlist",
         name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
         message: "Select price feeds:",
         choices: subsetPFs,
+        default: [],
       },
     ];
     let pairSelection = await inquirer.prompt(questions);
     let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
-    if (targetKey(pairSelectionParsed) == 6) {
+    if (targetKey(pairSelectionParsed) == "6") {
       //more options:
       let questions = [
         {
@@ -67,6 +75,7 @@ module.exports = {
         name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION,
         message: "Select a function for the Mock Oracle",
         choices: ["Constant", "Incremental", "Volatile", "Original"],
+        default: [],
       },
     ];
     const mockFnSelection = await inquirer.prompt(questions);

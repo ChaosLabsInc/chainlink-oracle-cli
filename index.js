@@ -1,4 +1,4 @@
-const cli = require("./src/cli");
+const cli = require("./dist/src/cli");
 
 async function main() {
   await cli.welcomeMessage();

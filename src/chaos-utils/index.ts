@@ -1,7 +1,8 @@
-const Table = require("cli-table");
+// const Table = require("cli-table");
+import Table from "cli-table";
 
-module.exports = {
-  logTable: function logTable(headers, data) {
+export = {
+  logTable: function logTable(headers: string[], data: string[]) {
     let table = new Table({
       head: headers,
       colWidths: headers.map((h) => 45),

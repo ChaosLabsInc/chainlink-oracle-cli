@@ -1,10 +1,11 @@
-const hre = require("hardhat");
-const { ethers } = hre;
-const ChaosUtils = require("../chaos-utils");
-const Constants = require("../constants");
-const AgentsHelper = require("../agents");
-const chalk = require("chalk");
-const ChainlinkProxyAggregator = require("../chainlink-aggregator");
+import { ethers } from "hardhat";
+import { Contract } from "ethers";
+import hre from "hardhat";
+import ChaosUtils from "../chaos-utils";
+import Constants from "../Constants";
+import AgentsHelper from "../agents";
+import chalk from "chalk";
+import ChainlinkProxyAggregator from "../chainlink-aggregator";
 
 /*
  * @contractName - the name of the mocker contract being deployed.
@@ -13,18 +14,24 @@ const ChainlinkProxyAggregator = require("../chainlink-aggregator");
  * @step - the change in value (incremental/multiplier) every 'pace' blocks.
  * @pace - the number of blocks between each value change, counter starts from contract deployment.
  */
-async function deployMockerContract(contractName, lastRoundData, mocked, step, pace) {
+async function deployMockerContract(
+  contractName: string,
+  lastRoundData: any,
+  mocked: number,
+  step: number,
+  pace: number
+) {
   const mockerContract = await ethers.getContractFactory(contractName);
   var constructor, deployer;
-  fragments = mockerContract.interface.fragments;
-  for (i = 0; i < fragments.length; i++) {
+  let fragments = mockerContract.interface.fragments;
+  for (let i = 0; i < fragments.length; i++) {
     if (fragments[i].type == "constructor") {
       constructor = fragments[i];
       break;
     }
   }
   if (constructor == undefined) {
-    return null;
+    throw "constructor not found";
   }
   switch (constructor.inputs.length) {
     case 5:
@@ -60,14 +67,14 @@ async function deployMockerContract(contractName, lastRoundData, mocked, step, p
  * @mockerAggregatorAddress - the address of the mocker contract, if a burn address is provided then
  * the default behavior remains ["0x000000000000000000000000000000000000dEaD"]
  */
-async function deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress) {
+async function deployManiupulatorContract(proxyAggregatorAddress: string, mockerAggregatorAddress: string) {
   const AggregatorManipulator = await ethers.getContractFactory("AggregatorManipulator");
-  deployer = await AggregatorManipulator.deploy(proxyAggregatorAddress, mockerAggregatorAddress);
+  let deployer = await AggregatorManipulator.deploy(proxyAggregatorAddress, mockerAggregatorAddress);
   await deployer.deployed();
   return deployer;
 }
 
-async function deployAllMockerContracts(data, value, step, pace) {
+async function deployAllMockerContracts(data: any, value: number, step: number, pace: number) {
   const [aggregatorConstant, aggregatorIncremental, AggregatorVolatile] = await Promise.all([
     deployMockerContract("AggregatorConstant", data, value, step, pace),
     deployMockerContract("AggregatorIncremental", data, value, step, pace),
@@ -85,7 +92,7 @@ async function deployAllMockerContracts(data, value, step, pace) {
   };
 }
 
-async function hijackAggregator(originAggregator, aggregatorManipulator) {
+async function hijackAggregator(originAggregator: Contract, aggregatorManipulator: Contract) {
   const chainlinkAggregatorOwner = await originAggregator.owner();
   await AgentsHelper.sendEthFromTo(Constants.ETH_WHALE_ADDRESS, chainlinkAggregatorOwner);
   await hre.network.provider.request({
@@ -96,7 +103,7 @@ async function hijackAggregator(originAggregator, aggregatorManipulator) {
   try {
     await originAggregator.connect(chainlinkAggOwnerSigner).proposeAggregator(aggregatorManipulator.address);
   } catch (e) {
-    throw new Error("Failed to propose new aggregator...", e);
+    throw new Error(`Failed to propose new aggregator...[${e}]`);
   }
   try {
     await originAggregator.connect(chainlinkAggOwnerSigner).confirmAggregator(aggregatorManipulator.address);
@@ -105,17 +112,17 @@ async function hijackAggregator(originAggregator, aggregatorManipulator) {
       params: [chainlinkAggregatorOwner],
     });
   } catch (e) {
-    throw new Error("Failed to confirm new aggregator...", e);
+    throw new Error(`Failed to confirm new aggregator...[${e}]`);
   }
 }
 
-async function fetchValue(aggergatorAddress) {
+async function fetchValue(aggergatorAddress: string) {
   const PriceConsumerV3 = await ethers.getContractFactory("PriceConsumerV3");
   const priceConsumerV3 = await PriceConsumerV3.deploy(aggergatorAddress);
   await priceConsumerV3.deployed();
 
   console.log("Fetching price...");
-  price = await priceConsumerV3.getLatestPrice();
+  let price = await priceConsumerV3.getLatestPrice();
   console.log(chalk.blue("Price: ", price.toString()));
   return price;
 }
@@ -140,7 +147,13 @@ async function demo() {
   await fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
 }
 
-async function MockContract(contractName, currentProxyAddress, value, change, pace) {
+async function MockContract(
+  contractName: string,
+  currentProxyAddress: string,
+  value: number,
+  change: number,
+  pace: number
+) {
   const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
   const data = await originAggregator.latestRoundData();
   const mockerContract = await deployMockerContract(contractName, data, value, change, pace);
@@ -152,20 +165,26 @@ async function MockContract(contractName, currentProxyAddress, value, change, pa
   await hijackAggregator(originAggregator, aggregatorManipulator);
 }
 
-module.exports = {
-  MockContract: async function (contractName, currentProxyAddress, value, change, pace) {
+export = {
+  MockContract: async function (
+    contractName: string,
+    currentProxyAddress: string,
+    value: number,
+    change: number,
+    pace: number
+  ) {
     await MockContract(contractName, currentProxyAddress, value, change, pace);
   },
-  deployAllMockerContracts: async function (data, step, pace) {
-    await deployAllMockerContracts(data, step, pace);
+  deployAllMockerContracts: async function (data: any, mocked: number, step: number, pace: number) {
+    await deployAllMockerContracts(data, mocked, step, pace);
   },
-  deployMockerContract: async function (contractName, data, step, pace) {
+  deployMockerContract: async function (contractName: string, data: any, mocked: number, step: number, pace: number) {
     await deployMockerContract(contractName, data, mocked, step, pace);
   },
-  deployManiupulatorContract: async function (proxyAggregatorAddress, mockerAggregatorAddress) {
+  deployManiupulatorContract: async function (proxyAggregatorAddress: string, mockerAggregatorAddress: string) {
     await deployManiupulatorContract(proxyAggregatorAddress, mockerAggregatorAddress);
   },
-  fetchValue: async function (aggergatorAddress) {
+  fetchValue: async function (aggergatorAddress: string) {
     await fetchValue(aggergatorAddress);
   },
   demo: async function () {
