@@ -119,8 +119,8 @@ async function hijackAggregator(originAggregator: Contract, aggregatorManipulato
 async function fetchValue(aggergatorAddress: string) {
   const PriceConsumerV3 = await ethers.getContractFactory("PriceConsumerV3");
   const priceConsumerV3 = await PriceConsumerV3.deploy(aggergatorAddress);
-  await priceConsumerV3.deployed();
-  console.log(priceConsumerV3);
+  let res = await priceConsumerV3.deployed();
+
   console.log("Fetching price...");
   let price = await priceConsumerV3.getLatestPrice();
   console.log(chalk.blue("Price: ", price.toString()));
