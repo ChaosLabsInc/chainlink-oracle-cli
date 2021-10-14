@@ -23,7 +23,7 @@ function targetKey(pairSelectionParsed: string) {
   return pairSelectionParsed.split(".")[0];
 }
 
-module.exports = {
+export = {
   welcomeMessage: async function () {
     clear();
     console.log(chalk.green("🎉 ✨ 🔥 Hijacked Chainlink Oracles by: 🎉 ✨ 🔥"));
