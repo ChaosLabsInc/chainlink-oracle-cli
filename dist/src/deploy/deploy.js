@@ -114,6 +114,7 @@ function fetchValue(aggergatorAddress) {
         const PriceConsumerV3 = yield hardhat_1.ethers.getContractFactory("PriceConsumerV3");
         const priceConsumerV3 = yield PriceConsumerV3.deploy(aggergatorAddress);
         yield priceConsumerV3.deployed();
+        console.log(priceConsumerV3);
         console.log("Fetching price...");
         let price = yield priceConsumerV3.getLatestPrice();
         console.log(chalk_1.default.blue("Price: ", price.toString()));

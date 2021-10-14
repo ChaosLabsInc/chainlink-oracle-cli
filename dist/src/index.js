@@ -8,21 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const chai_1 = require("chai");
-const hardhat_1 = require("hardhat");
-describe("PriceConsumerV3", function () {
-    let priceConsumerV3;
-    beforeEach(() => __awaiter(this, void 0, void 0, function* () {
-        console.log("**** DEPLOYING CONSUMER");
-        let PriceConsumerV3 = yield hardhat_1.ethers.getContractFactory("PriceConsumerV3");
-        priceConsumerV3 = yield PriceConsumerV3.deploy();
-        yield priceConsumerV3.deployed();
-    }));
-    it("Should be able to successfully get round data", function () {
-        return __awaiter(this, void 0, void 0, function* () {
-            (0, chai_1.expect)(yield priceConsumerV3.getLatestPrice()).not.be.null;
-        });
+const cli_1 = __importDefault(require("./cli"));
+function main() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield cli_1.default.welcomeMessage();
     });
-});
-//# sourceMappingURL=cosumer.js.map
+}
+main();
+//# sourceMappingURL=index.js.map
