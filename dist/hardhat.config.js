@@ -22,6 +22,7 @@ require("@nomiclabs/hardhat-waffle");
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 exports.default = {
+    defaultNetwork: "localhost",
     solidity: "0.6.6",
 };
 //# sourceMappingURL=hardhat.config.js.map
