@@ -131,12 +131,7 @@ async function demo() {
   let currentProxyAddress = Constants.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS;
   const originAggregator = await ChainlinkProxyAggregator.genChainLinkAggregatorContract(currentProxyAddress);
   const data = await originAggregator.latestRoundData();
-  const { aggregatorConstant, aggregatorIncremental, AggregatorVolatile } = await deployAllMockerContracts(
-    data,
-    0,
-    1000,
-    7
-  );
+  const { aggregatorIncremental } = await deployAllMockerContracts(data, 0, 1000, 7);
   const aggregatorManipulator = await deployManiupulatorContract(currentProxyAddress, aggregatorIncremental.address);
   ChaosUtils.logTable(
     ["aggregatorManipulator", "origin manipulator"],

@@ -11,16 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-// import { ethers } from "hardhat";
 const deploy_1 = __importDefault(require("../deploy/deploy"));
 const figlet_1 = __importDefault(require("figlet"));
 const clear_1 = __importDefault(require("clear"));
 const inquirer_1 = __importDefault(require("inquirer"));
 const chainlink_data_feeds_1 = __importDefault(require("../chainlink-data-feeds"));
 const chalk_1 = __importDefault(require("chalk"));
-// import ChainlinkProxyAggregator from "../chainlink-aggregator";
 const QUESTION_PROMPT_NAMES = {
-    HIJACKABLE_FEEDS: "Hijackable Price Feeds",
+    CONFIGURABLE_FEEDS: "Configurable Price Feeds",
     MOCK_AGGREGATOR_SELECTION: "Mock Aggregator Selection",
     MOCK_AGGREGATOR_BASE_VALUE: "Mock Intial Value",
     MOCK_AGGREGATOR_VALUE_CHANGE: "Mock Value Change",
@@ -36,9 +34,8 @@ module.exports = {
     welcomeMessage: function () {
         return __awaiter(this, void 0, void 0, function* () {
             (0, clear_1.default)();
-            console.log(chalk_1.default.green("🎉 ✨ 🔥 Hijacked Chainlink Oracles by: 🎉 ✨ 🔥"));
+            console.log(chalk_1.default.green("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥"));
             console.log(chalk_1.default.blue(figlet_1.default.textSync("Chaos Labs")));
-            yield this.selectTokenPairPricesToMock();
         });
     },
     selectTokenPairPricesToMock: function selectTokenPairPricesToMock() {
@@ -51,26 +48,26 @@ module.exports = {
             let questions = [
                 {
                     type: "rawlist",
-                    name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
+                    name: QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS,
                     message: "Select price feeds:",
                     choices: subsetPFs,
                     default: [],
                 },
             ];
             let pairSelection = yield inquirer_1.default.prompt(questions);
-            let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
+            let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
             if (targetKey(pairSelectionParsed) == "6") {
                 //more options:
                 let questions = [
                     {
                         type: "rawlist",
-                        name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
+                        name: QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS,
                         message: "Select price feeds:",
                         choices: feedChoices,
                     },
                 ];
                 pairSelection = yield inquirer_1.default.prompt(questions);
-                pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
+                pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
             }
             console.log(chalk_1.default.blue("You selected " + pairSelectionParsed));
             // ******************** GET MOCK FN ********************

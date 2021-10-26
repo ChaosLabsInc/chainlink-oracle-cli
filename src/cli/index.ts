@@ -1,135 +1,114 @@
-// import { ethers } from "hardhat";
-import delpoyer from "../deploy/deploy";
+import deployer from "../deploy/deploy";
 import figlet from "figlet";
 import clear from "clear";
 import inquirer from "inquirer";
 import PriceFeeds from "../chainlink-data-feeds";
+import {
+  QUESTION_PROMPT_NAMES,
+  getConfigurablePriceFeedsQuestion,
+  getAllPriceFeedsQuestion,
+  getSelectInitialValueQuestion,
+  getMockFunctionQuestion,
+  getPriceChangeQuestion,
+  getPriceChangeFrequency,
+  showAllPriceFeedsSelected,
+  showSearchPriceFeedsSelected,
+} from "./questions";
+import { targetKey } from "./utils";
 import chalk from "chalk";
-// import ChainlinkProxyAggregator from "../chainlink-aggregator";
 
-const QUESTION_PROMPT_NAMES = {
-  HIJACKABLE_FEEDS: "Hijackable Price Feeds",
-  MOCK_AGGREGATOR_SELECTION: "Mock Aggregator Selection",
-  MOCK_AGGREGATOR_BASE_VALUE: "Mock Intial Value",
-  MOCK_AGGREGATOR_VALUE_CHANGE: "Mock Value Change",
-  MOCK_AGGREGATOR_CHANGE_PACE: "Mock Change Pace",
+type PriceFeed = {
+  pair: string; // '1INCH / ETH'
+  proxy: string; // 0xwgmi
 };
 
 function contactName(name: string) {
   return "Aggregator" + name;
 }
 
-function targetKey(pairSelectionParsed: string) {
-  return pairSelectionParsed.split(".")[0];
-}
+const YOU_SELECTED = "You selected ";
 
 export = {
   welcomeMessage: async function () {
     clear();
-    console.log(chalk.green("🎉 ✨ 🔥 Hijacked Chainlink Oracles by: 🎉 ✨ 🔥"));
+    console.log(chalk.green("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥"));
     console.log(chalk.blue(figlet.textSync("Chaos Labs")));
-    await this.selectTokenPairPricesToMock();
   },
   selectTokenPairPricesToMock: async function selectTokenPairPricesToMock() {
-    // ******************** GET PRICE FEED ********************
-    const pricefeeds = await PriceFeeds.getEthereumProxiesForNetwork();
-    const feedChoices = pricefeeds.map((pair: any, i: number) => `${i}. ${pair.pair}`);
-    const subsetPFs = feedChoices.slice(0, 5);
-    subsetPFs.push("6. View full list");
-    let questions: {
-      type: string;
-      name: string;
-      message: string;
-      choices?: string[];
-      default?: number[];
-    }[] = [
-      {
-        type: "rawlist",
-        name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
-        message: "Select price feeds:",
-        choices: subsetPFs,
-        default: [],
-      },
-    ];
-    let pairSelection = await inquirer.prompt(questions);
-    let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
-    if (targetKey(pairSelectionParsed) == "6") {
-      //more options:
-      let questions = [
-        {
-          type: "rawlist",
-          name: QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS,
-          message: "Select price feeds:",
-          choices: feedChoices,
-        },
-      ];
-      pairSelection = await inquirer.prompt(questions);
-      pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.HIJACKABLE_FEEDS];
+    const priceFeeds = await PriceFeeds.getEthereumProxiesForNetwork();
+    const tokenPairsSliced = priceFeeds.map((pair: any, i: number) => `${pair.pair}`);
+    const getPriceFeedChoices = [...tokenPairsSliced.slice(0, 4), "View full list", "Search by ticker"];
+    let pairSelection = await inquirer.prompt(getConfigurablePriceFeedsQuestion(getPriceFeedChoices));
+    let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
+    if (showAllPriceFeedsSelected(pairSelectionParsed)) {
+      pairSelection = await inquirer.prompt<number>(getAllPriceFeedsQuestion(tokenPairsSliced));
+      pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
+    } else if (showSearchPriceFeedsSelected(pairSelectionParsed)) {
+      // TODO:
     }
-    console.log(chalk.blue("You selected " + pairSelectionParsed));
-
-    // ******************** GET MOCK FN ********************
-    questions = [
-      {
-        type: "list",
-        name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION,
-        message: "Select a function for the Mock Oracle",
-        choices: ["Constant", "Incremental", "Volatile", "Original"],
-        default: [],
-      },
-    ];
-    const mockFnSelection = await inquirer.prompt(questions);
-    console.log(chalk.blue("You selected " + mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION]));
-    // ******************** GET VALUES FOR MOCK ********************
-    questions = [
-      {
-        type: "number",
-        name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE,
-        message: "Select intial value of mock",
-        default: [0], //TODO - current value retrieved.
-      },
-    ];
-    const valueSelection = await inquirer.prompt(questions);
-    console.log(chalk.blue("You selected " + valueSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE]));
-    questions = [
-      {
-        type: "number",
-        name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE,
-        message: "Select the change in price each tick",
-        default: [0],
-      },
-    ];
-    const valueChangeSelection = await inquirer.prompt(questions);
-    console.log(chalk.blue("You selected " + valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]));
-    questions = [
-      {
-        type: "number",
-        name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE,
-        message: "Select the tick frequency - counted in blocks on chain",
-        default: [0],
-      },
-    ];
-    const TickSelection = await inquirer.prompt(questions);
-    console.log(chalk.blue("You selected " + TickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]));
-
-    let originAddress = pricefeeds[targetKey(pairSelectionParsed)].proxy;
-    let name = contactName(mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION]);
+    console.log(chalk.blue(YOU_SELECTED + pairSelectionParsed));
+    return { pairSelectionParsed, priceFeeds };
+  },
+  selectMockFunction: async function selectMockFunction(): Promise<any> {
+    const mockFnSelection = await inquirer.prompt(getMockFunctionQuestion());
+    console.log(chalk.blue(YOU_SELECTED + mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION]));
+    return mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION];
+  },
+  selectInitialValue: async function selectInitialValue(): Promise<any> {
+    const initValue = await inquirer.prompt(getSelectInitialValueQuestion());
+    console.log(chalk.blue(YOU_SELECTED + initValue[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE]));
+    return initValue;
+  },
+  selectPriceChange: async function selectPriceChange(): Promise<any> {
+    const valueChangeSelection = await inquirer.prompt(getPriceChangeQuestion());
+    console.log(chalk.blue(YOU_SELECTED + valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]));
+    return valueChangeSelection;
+  },
+  selectBlockUpdateIntervalSize: async function selectBlockUpdateIntervalSize(): Promise<any> {
+    const blockUpdate = await inquirer.prompt(getPriceChangeFrequency());
+    console.log(chalk.blue(YOU_SELECTED + blockUpdate[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]));
+    return blockUpdate;
+  },
+  deploy: async function deploy(
+    pairSelectionParsed: string,
+    priceFeeds: Array<PriceFeed>,
+    mockFunction: any,
+    initValue: any,
+    valueChangeSelection: any,
+    tickSelection: any
+  ): Promise<void> {
+    const selectedPriceFeed = priceFeeds.find((pf: PriceFeed) => pf.pair === pairSelectionParsed);
+    if (selectedPriceFeed === undefined) {
+      throw new Error("Could not find price feed...");
+    }
+    const { proxy } = selectedPriceFeed;
+    let name = contactName(mockFunction);
     console.log(
-      chalk.blue(
-        `Hijacking pair proxy ${pairSelectionParsed.substring(
-          targetKey(pairSelectionParsed)
-        )} at address ${originAddress}`
+      chalk.green(
+        `Configuring pair proxy ${pairSelectionParsed.substring(
+          Number(targetKey(pairSelectionParsed))
+        )} at address ${proxy}`
       )
     );
-    await delpoyer.fetchValue(originAddress);
-    await delpoyer.MockContract(
+    await deployer.fetchValue(proxy);
+    console.log(
       name,
-      originAddress,
-      valueSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
+      proxy,
+      initValue[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
       valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
-      TickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
+      tickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
     );
-    await delpoyer.fetchValue(originAddress);
+    await deployer.MockContract(
+      name,
+      proxy,
+      // @ts-ignore
+      initValue[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
+      // @ts-ignore
+      valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
+      // @ts-ignore
+      tickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
+    );
+    await deployer.fetchValue(proxy);
 
     console.log(chalk.blue(`Let's get to work 💼 😏 ...`));
     console.log(chalk.yellow(figlet.textSync("Celebrate")));

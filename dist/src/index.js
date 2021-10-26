@@ -16,6 +16,7 @@ const cli_1 = __importDefault(require("./cli"));
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         yield cli_1.default.welcomeMessage();
+        yield cli_1.default.selectTokenPairPricesToMock();
     });
 }
 main();
