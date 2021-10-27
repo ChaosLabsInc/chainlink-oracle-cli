@@ -9,6 +9,10 @@
   "outDir": "dist",
   "baseUrl": ".",
   "strict": true,
+  "types": [
+    "node",
+    "jest"
+  ],
   "strictFunctionTypes": true,    
   "alwaysStrict": true,                                
   "paths": {
