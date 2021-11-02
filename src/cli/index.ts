@@ -35,11 +35,26 @@ export = {
     console.log(chalk.green("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥"));
     console.log(chalk.blue(figlet.textSync("Chaos Labs")));
   },
-  selectTokenPairPricesToMock: async function selectTokenPairPricesToMock() {
+  getEthereumProxiesForNetwork: async function getEthereumProxiesForNetwork(): Promise<{
+    priceFeeds: Array<any>;
+    tokenPairsSliced: Array<any>;
+    inquirerChoices: Array<any>;
+  }> {
     const priceFeeds = await PriceFeeds.getEthereumProxiesForNetwork();
-    const tokenPairsSliced = priceFeeds.map((pair: any, i: number) => `${pair.pair}`);
-    const getPriceFeedChoices = [...tokenPairsSliced.slice(0, 4), "View full list", "Search by ticker"];
-    let pairSelection = await inquirer.prompt(getConfigurablePriceFeedsQuestion(getPriceFeedChoices));
+    const tokenPairsSliced = priceFeeds.map((pair: any) => `${pair.pair}`);
+    const inquirerChoices = [...tokenPairsSliced.slice(0, 4), "View full list", "Search by ticker"];
+    return {
+      priceFeeds,
+      tokenPairsSliced,
+      inquirerChoices,
+    };
+  },
+  selectTokenPairPricesToMock: async function selectTokenPairPricesToMock(): Promise<{
+    pairSelectionParsed: string;
+    priceFeeds: Array<any>;
+  }> {
+    const { priceFeeds, tokenPairsSliced, inquirerChoices } = await this.getEthereumProxiesForNetwork();
+    let pairSelection = await inquirer.prompt(getConfigurablePriceFeedsQuestion(inquirerChoices));
     let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
     if (showAllPriceFeedsSelected(pairSelectionParsed)) {
       pairSelection = await inquirer.prompt<number>(getAllPriceFeedsQuestion(tokenPairsSliced));
