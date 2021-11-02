@@ -3,17 +3,7 @@ import figlet from "figlet";
 import clear from "clear";
 import inquirer from "inquirer";
 import PriceFeeds from "../chainlink-data-feeds";
-import {
-  QUESTION_PROMPT_NAMES,
-  getConfigurablePriceFeedsQuestion,
-  getAllPriceFeedsQuestion,
-  getSelectInitialValueQuestion,
-  getMockFunctionQuestion,
-  getPriceChangeQuestion,
-  getPriceChangeFrequency,
-  showAllPriceFeedsSelected,
-  showSearchPriceFeedsSelected,
-} from "../questions";
+import Questions from "../questions";
 import Utils from "../utils";
 import chalk from "chalk";
 
@@ -54,35 +44,35 @@ export = {
     priceFeeds: Array<any>;
   }> {
     const { priceFeeds, tokenPairsSliced, inquirerChoices } = await this.getEthereumProxiesForNetwork();
-    let pairSelection = await inquirer.prompt(getConfigurablePriceFeedsQuestion(inquirerChoices));
-    let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
-    if (showAllPriceFeedsSelected(pairSelectionParsed)) {
-      pairSelection = await inquirer.prompt<number>(getAllPriceFeedsQuestion(tokenPairsSliced));
-      pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
-    } else if (showSearchPriceFeedsSelected(pairSelectionParsed)) {
+    let pairSelection: any = await inquirer.prompt(Questions.getConfigurablePriceFeedsQuestion(inquirerChoices));
+    let pairSelectionParsed = pairSelection[Questions.QUESTION_NAMES.CONFIGURABLE_FEEDS];
+    if (Questions.showAllPriceFeedsSelected(pairSelectionParsed)) {
+      pairSelection = await inquirer.prompt<number>(Questions.getAllPriceFeedsQuestion(tokenPairsSliced));
+      pairSelectionParsed = pairSelection[Questions.QUESTION_NAMES.CONFIGURABLE_FEEDS];
+    } else if (Questions.showSearchPriceFeedsSelected(pairSelectionParsed)) {
       // TODO:
     }
     console.log(chalk.blue(YOU_SELECTED + pairSelectionParsed));
     return { pairSelectionParsed, priceFeeds };
   },
   selectMockFunction: async function selectMockFunction(): Promise<any> {
-    const mockFnSelection = await inquirer.prompt(getMockFunctionQuestion());
-    console.log(chalk.blue(YOU_SELECTED + mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION]));
-    return mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION];
+    const mockFnSelection: any = await inquirer.prompt(Questions.getMockFunctionQuestion());
+    console.log(chalk.blue(YOU_SELECTED + mockFnSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION]));
+    return mockFnSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION];
   },
   selectInitialValue: async function selectInitialValue(): Promise<any> {
-    const initValue = await inquirer.prompt(getSelectInitialValueQuestion());
-    console.log(chalk.blue(YOU_SELECTED + initValue[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE]));
+    const initValue = await inquirer.prompt(Questions.getSelectInitialValueQuestion());
+    console.log(chalk.blue(YOU_SELECTED + initValue[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE]));
     return initValue;
   },
   selectPriceChange: async function selectPriceChange(): Promise<any> {
-    const valueChangeSelection = await inquirer.prompt(getPriceChangeQuestion());
-    console.log(chalk.blue(YOU_SELECTED + valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]));
+    const valueChangeSelection = await inquirer.prompt(Questions.getPriceChangeQuestion());
+    console.log(chalk.blue(YOU_SELECTED + valueChangeSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]));
     return valueChangeSelection;
   },
   selectBlockUpdateIntervalSize: async function selectBlockUpdateIntervalSize(): Promise<any> {
-    const blockUpdate = await inquirer.prompt(getPriceChangeFrequency());
-    console.log(chalk.blue(YOU_SELECTED + blockUpdate[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]));
+    const blockUpdate = await inquirer.prompt(Questions.getPriceChangeFrequency());
+    console.log(chalk.blue(YOU_SELECTED + blockUpdate[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]));
     return blockUpdate;
   },
   deploy: async function deploy(
@@ -110,9 +100,9 @@ export = {
     console.log(
       name,
       proxy,
-      initValue[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
-      valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
-      tickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
+      initValue[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
+      valueChangeSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
+      tickSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
     );
     await deployer.MockContract(
       name,
