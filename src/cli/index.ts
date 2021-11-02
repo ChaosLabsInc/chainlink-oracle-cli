@@ -13,8 +13,8 @@ import {
   getPriceChangeFrequency,
   showAllPriceFeedsSelected,
   showSearchPriceFeedsSelected,
-} from "./questions";
-import { targetKey } from "./utils";
+} from "../questions";
+import Utils from "../utils";
 import chalk from "chalk";
 
 type PriceFeed = {
@@ -27,6 +27,7 @@ function contactName(name: string) {
 }
 
 const YOU_SELECTED = "You selected ";
+const { targetKey } = Utils;
 
 export = {
   welcomeMessage: async function () {

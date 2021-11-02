@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { Contract } from "ethers";
 import hre from "hardhat";
-import ChaosUtils from "../chaos-utils";
+import ChaosUtils from "../utils";
 import Constants from "../Constants";
 import AgentsHelper from "../agents";
 import chalk from "chalk";

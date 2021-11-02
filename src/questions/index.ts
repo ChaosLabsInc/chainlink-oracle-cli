@@ -1,4 +1,4 @@
-import { targetKey } from "./utils";
+import Utils from "../utils";
 export const QUESTION_PROMPT_NAMES = {
   CONFIGURABLE_FEEDS: "Configurable Price Feeds",
   MOCK_AGGREGATOR_SELECTION: "Mock Aggregator Selection",
@@ -6,6 +6,8 @@ export const QUESTION_PROMPT_NAMES = {
   MOCK_AGGREGATOR_VALUE_CHANGE: "Mock Value Change",
   MOCK_AGGREGATOR_CHANGE_PACE: "Mock Change Pace",
 };
+
+const { targetKey } = Utils;
 
 export const getConfigurablePriceFeedsQuestion = (choices: Array<string>) => {
   return [

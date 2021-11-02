@@ -1,4 +1,3 @@
-// const Table = require("cli-table");
 import Table from "cli-table";
 
 export = {
@@ -9,5 +8,8 @@ export = {
     });
     table.push(data);
     console.log(table.toString());
+  },
+  targetKey: function targetKey(pairSelectionParsed: string) {
+    return pairSelectionParsed.split(".")[0];
   },
 };
