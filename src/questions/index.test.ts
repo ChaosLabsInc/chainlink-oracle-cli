@@ -25,17 +25,46 @@ test(`${QUESTION_TEST_SUITE} - getAllPriceFeedsQuestion`, () => {
 });
 
 test(`${QUESTION_TEST_SUITE} - getSelectInitialValueQuestion`, () => {
-  expect("1").toBe("1");
+  const initValQuestions = Questions.getSelectInitialValueQuestion();
+  expect(initValQuestions.length).toBeGreaterThan(0);
+  expect(initValQuestions[0]).toMatchObject({
+    type: "number",
+    name: Questions.QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE,
+    message: "Select intial value of mock",
+    default: [0], //TODO - current value retrieved.
+  });
 });
 
 test(`${QUESTION_TEST_SUITE} - getPriceChangeQuestion`, () => {
-  expect("1").toBe("1");
+  const priceChangeQuestion = Questions.getPriceChangeQuestion();
+  expect(priceChangeQuestion.length).toBeGreaterThan(0);
+  expect(priceChangeQuestion[0]).toMatchObject({
+    type: "number",
+    name: Questions.QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE,
+    message: "Select the change in price each tick",
+    default: [0],
+  });
 });
 
-test(`${QUESTION_TEST_SUITE} - getConfigurablePriceFeedsQuestion`, () => {
-  expect("1").toBe("1");
+test(`${QUESTION_TEST_SUITE} - getPriceChangeFrequency`, () => {
+  const priceChangeFrequencyQuestion = Questions.getPriceChangeQuestion();
+  expect(priceChangeFrequencyQuestion.length).toBeGreaterThan(0);
+  expect(priceChangeFrequencyQuestion[0]).toMatchObject({
+    type: "number",
+    name: Questions.QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE,
+    message: "Select price update frequency - counted in mined blocks ",
+    default: [0],
+  });
 });
 
 test(`${QUESTION_TEST_SUITE} - getMockFunctionQuestion `, () => {
-  expect("1").toBe("1");
+  const mockFNQuestion = Questions.getMockFunctionQuestion();
+  expect(mockFNQuestion.length).toBeGreaterThan(0);
+  expect(mockFNQuestion[0]).toMatchObject({
+    type: "list",
+    name: Questions.QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION,
+    message: "Select a function for the Mock Oracle",
+    choices: ["Constant", "Incremental", "Volatile", "Original"],
+    default: [],
+  });
 });
