@@ -1,5 +1,3 @@
-# Chaos Labs<>Chainlink Mock Oracles
-
 ![Chaos Labs - Chainlink Collab](https://github.com/ChaosLabsInc/chaos-labs-chainlink/blob/master/img/ChaosLabsChainlink.jpg)
 
 This repository hosts a CLI utitlity for mocking Chainlink Oracle prices in a local hardhat mainnet fork testing environment. Navigate to our [Quickstart](#quickstart) section to get the repo up and running.
