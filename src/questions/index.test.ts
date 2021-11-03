@@ -47,7 +47,7 @@ test(`${QUESTION_TEST_SUITE} - getPriceChangeQuestion`, () => {
 });
 
 test(`${QUESTION_TEST_SUITE} - getPriceChangeFrequency`, () => {
-  const priceChangeFrequencyQuestion = Questions.getPriceChangeQuestion();
+  const priceChangeFrequencyQuestion = Questions.getPriceChangeFrequency();
   expect(priceChangeFrequencyQuestion.length).toBeGreaterThan(0);
   expect(priceChangeFrequencyQuestion[0]).toMatchObject({
     type: "number",
