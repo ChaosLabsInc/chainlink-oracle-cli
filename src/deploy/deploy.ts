@@ -92,7 +92,7 @@ async function deployAllMockerContracts(data: any, value: number, step: number, 
   };
 }
 
-async function hijackAggregator(originAggregator: Contract, aggregatorManipulator: Contract) {
+async function mockAggregator(originAggregator: Contract, aggregatorManipulator: Contract) {
   const chainlinkAggregatorOwner = await originAggregator.owner();
   await AgentsHelper.sendEthFromTo(Constants.ETH_WHALE_ADDRESS, chainlinkAggregatorOwner);
   await hre.network.provider.request({
@@ -138,7 +138,7 @@ async function demo() {
     [aggregatorManipulator.address, currentProxyAddress]
   );
   await fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
-  await hijackAggregator(originAggregator, aggregatorManipulator);
+  await mockAggregator(originAggregator, aggregatorManipulator);
   await fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
 }
 
@@ -157,7 +157,7 @@ async function MockContract(
     ["Aggregator Manipulator", "Mocker Aggregator", "Origin Aggregator"],
     [aggregatorManipulator.address, mockerContract.address, currentProxyAddress]
   );
-  await hijackAggregator(originAggregator, aggregatorManipulator);
+  await mockAggregator(originAggregator, aggregatorManipulator);
 }
 
 export = {
