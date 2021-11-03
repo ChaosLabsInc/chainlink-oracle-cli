@@ -1,5 +1,7 @@
 # Chaos Labs<>Chainlink Mock Oracles
 
+![Chaos Labs - Chainlink Collab](https://github.com/ChaosLabsInc/chaos-labs-chainlink/blob/master/img/ChaosLabsChainlink.jpg)
+
 - Chaos Labs Article Link
 - Chainlink Article Link
 - Marketing image of collab
