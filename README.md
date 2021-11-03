@@ -28,7 +28,7 @@ With the ability to manipulate Chainlink Oracle return values, simulating such s
 
 ## Prerequisities && QuickStart
 
-1. 'ts-node' to run typescript (`npm i -G ts-node`)
+1. `ts-node` to run typescript (`npm i -G ts-node`)
 2. Alchemy API key for mainnet fork access
 3. `npm i` - Installing project libs.
 4. `npx hardhat compile` - Compiling solidity contracts

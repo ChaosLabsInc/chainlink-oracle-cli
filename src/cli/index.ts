@@ -23,7 +23,7 @@ const { prompt } = inquirer;
 export = {
   welcomeMessage: async function () {
     clear();
-    logGreen("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥");
+    logGreen("🎉 ✨ 🔥 Mocked Chainlink Oracles by: 🎉 ✨ 🔥");
     logBlue(figlet.textSync("Chaos Labs"));
   },
   getEthereumProxiesForNetwork: async function getEthereumProxiesForNetwork(): Promise<{
