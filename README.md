@@ -2,11 +2,7 @@
 
 ![Chaos Labs - Chainlink Collab](https://github.com/ChaosLabsInc/chaos-labs-chainlink/blob/master/img/ChaosLabsChainlink.jpg)
 
-- Chaos Labs Article Link
-- Chainlink Article Link
-- Marketing image of collab
-
-This repository hosts a CLI utitlity for mocking Chainlink Oracle prices in a local hardhat mainnet fork testing environment. Navigate to our [Quickstart]() section to get the repo up and running.
+This repository hosts a CLI utitlity for mocking Chainlink Oracle prices in a local hardhat mainnet fork testing environment. Navigate to our [Quickstart](#quickstart) section to get the repo up and running.
 
 For a full deep dive to the project architecture please visit the [Chaos Labs blog](https://chaoslabs.xyz/blog/mock-chainlink-oroacles-pt-1).
 
@@ -18,7 +14,7 @@ DeFi protocols and applications are at high risk due to volatile market conditio
 
 Volatility is a DeFi constant and is something that all protocols and applications should test for thoroughly. Internal application and protocol state is often a direct result of Oracle returns values. To further illustrate this let's use an example.
 
-Imagine a lending protocol (Maker, AAVE, Benqi, Spectral.finance, etc..) that accepts Ethereum as collateral against stablecoin loans. What happens on a day like Black Thursday, when Ethereum prices cascade negatively to the tune of ~70% in a 48 hour time frame? Well, a lot of things happen <INSERT_EMOJI>. One critical aspect of responding to market volatiltiy is protocol keepers triggering liquidations and thus ensuring protocol solvency.
+Imagine a lending protocol (Maker, AAVE, Benqi, Spectral.finance, etc..) that accepts Ethereum as collateral against stablecoin loans. What happens on a day like Black Thursday, when Ethereum prices cascade negatively to the tune of ~70% in a 48 hour time frame? Well, a lot of things happen 🤦. One critical aspect of responding to market volatiltiy is protocol keepers triggering liquidations and thus ensuring protocol solvency.
 
 With the ability to control Oracle return values, simulating such scenarios in your local development environment is possible.
 
@@ -28,7 +24,7 @@ Oracle manipulation is an additional attack vector. With this method, malicious 
 
 With the ability to manipulate Chainlink Oracle return values, simulating such scenarios in your local development environment is possible.
 
-## Prerequisities && QuickStart
+## <a name="quickstart"></a> Prerequisities && QuickStart
 
 1. `ts-node` to run typescript (`npm i -G ts-node`)
 2. Alchemy API key for mainnet fork access
@@ -52,6 +48,8 @@ This repo is meant to serve as an implementation spec for mocking oracle return 
 4. Select the price delta in each tick and tick size (how often (in blocks) should the price update):
 
 5. Deploy 🤝 💥
+
+![Example Flow](https://github.com/ChaosLabsInc/chaos-labs-chainlink/blob/master/img/ExampleFlow.png)
 
 ## PR Requests
 
