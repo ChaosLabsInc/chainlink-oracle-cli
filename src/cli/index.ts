@@ -5,7 +5,6 @@ import inquirer from "inquirer";
 import PriceFeeds from "../chainlink-data-feeds";
 import Questions from "../questions";
 import Utils from "../utils";
-import chalk from "chalk";
 
 type PriceFeed = {
   pair: string; // '1INCH / ETH'
@@ -17,13 +16,15 @@ function contactName(name: string) {
 }
 
 const YOU_SELECTED = "You selected ";
-const { targetKey } = Utils;
+const { targetKey, logBlue, logGreen, logYellow } = Utils;
+const { QUESTION_NAMES } = Questions;
+const { prompt } = inquirer;
 
 export = {
   welcomeMessage: async function () {
     clear();
-    console.log(chalk.green("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥"));
-    console.log(chalk.blue(figlet.textSync("Chaos Labs")));
+    logGreen("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥");
+    logBlue(figlet.textSync("Chaos Labs"));
   },
   getEthereumProxiesForNetwork: async function getEthereumProxiesForNetwork(): Promise<{
     priceFeeds: Array<any>;
@@ -44,35 +45,35 @@ export = {
     priceFeeds: Array<any>;
   }> {
     const { priceFeeds, tokenPairsSliced, inquirerChoices } = await this.getEthereumProxiesForNetwork();
-    let pairSelection: any = await inquirer.prompt(Questions.getConfigurablePriceFeedsQuestion(inquirerChoices));
-    let pairSelectionParsed = pairSelection[Questions.QUESTION_NAMES.CONFIGURABLE_FEEDS];
+    let pairSelection: any = await prompt(Questions.getConfigurablePriceFeedsQuestion(inquirerChoices));
+    let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
     if (Questions.showAllPriceFeedsSelected(pairSelectionParsed)) {
-      pairSelection = await inquirer.prompt<number>(Questions.getAllPriceFeedsQuestion(tokenPairsSliced));
-      pairSelectionParsed = pairSelection[Questions.QUESTION_NAMES.CONFIGURABLE_FEEDS];
+      pairSelection = await prompt<number>(Questions.getAllPriceFeedsQuestion(tokenPairsSliced));
+      pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
     } else if (Questions.showSearchPriceFeedsSelected(pairSelectionParsed)) {
       // TODO:
     }
-    console.log(chalk.blue(YOU_SELECTED + pairSelectionParsed));
+    logBlue(YOU_SELECTED + pairSelectionParsed);
     return { pairSelectionParsed, priceFeeds };
   },
   selectMockFunction: async function selectMockFunction(): Promise<any> {
-    const mockFnSelection: any = await inquirer.prompt(Questions.getMockFunctionQuestion());
-    console.log(chalk.blue(YOU_SELECTED + mockFnSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION]));
-    return mockFnSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION];
+    const mockFnSelection: any = await prompt(Questions.getMockFunctionQuestion());
+    logBlue(YOU_SELECTED + mockFnSelection[QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION]);
+    return mockFnSelection[QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION];
   },
   selectInitialValue: async function selectInitialValue(): Promise<any> {
-    const initValue = await inquirer.prompt(Questions.getSelectInitialValueQuestion());
-    console.log(chalk.blue(YOU_SELECTED + initValue[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE]));
+    const initValue = await prompt(Questions.getSelectInitialValueQuestion());
+    logBlue(YOU_SELECTED + initValue[QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE]);
     return initValue;
   },
   selectPriceChange: async function selectPriceChange(): Promise<any> {
-    const valueChangeSelection = await inquirer.prompt(Questions.getPriceChangeQuestion());
-    console.log(chalk.blue(YOU_SELECTED + valueChangeSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]));
+    const valueChangeSelection = await prompt(Questions.getPriceChangeQuestion());
+    logBlue(YOU_SELECTED + valueChangeSelection[QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]);
     return valueChangeSelection;
   },
   selectBlockUpdateIntervalSize: async function selectBlockUpdateIntervalSize(): Promise<any> {
-    const blockUpdate = await inquirer.prompt(Questions.getPriceChangeFrequency());
-    console.log(chalk.blue(YOU_SELECTED + blockUpdate[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]));
+    const blockUpdate = await prompt(Questions.getPriceChangeFrequency());
+    logBlue(YOU_SELECTED + blockUpdate[QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]);
     return blockUpdate;
   },
   deploy: async function deploy(
@@ -89,35 +90,33 @@ export = {
     }
     const { proxy } = selectedPriceFeed;
     let name = contactName(mockFunction);
-    console.log(
-      chalk.green(
-        `Configuring pair proxy ${pairSelectionParsed.substring(
-          Number(targetKey(pairSelectionParsed))
-        )} at address ${proxy}`
-      )
+    logGreen(
+      `Configuring pair proxy ${pairSelectionParsed.substring(
+        Number(targetKey(pairSelectionParsed))
+      )} at address ${proxy}`
     );
     await deployer.fetchValue(proxy);
     console.log(
       name,
       proxy,
-      initValue[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
-      valueChangeSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
-      tickSelection[Questions.QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
+      initValue[QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
+      valueChangeSelection[QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
+      tickSelection[QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
     );
     await deployer.MockContract(
       name,
       proxy,
       // @ts-ignore
-      initValue[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
+      initValue[QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE],
       // @ts-ignore
-      valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
+      valueChangeSelection[QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE],
       // @ts-ignore
-      tickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
+      tickSelection[QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]
     );
     await deployer.fetchValue(proxy);
 
-    console.log(chalk.blue(`Let's get to work 💼 😏 ...`));
-    console.log(chalk.yellow(figlet.textSync("Celebrate")));
-    console.log(chalk.blue(`You are a shadowy super code 🔥 ✨ 😏 ...`));
+    logBlue(`Let's get to work 💼 😏 ...`);
+    logYellow(figlet.textSync("Celebrate"));
+    logBlue(`You are a shadowy super code 🔥 ✨ 😏 ...`);
   },
 };
