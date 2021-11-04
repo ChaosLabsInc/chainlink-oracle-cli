@@ -55,5 +55,9 @@ This repo is meant to serve as an implementation spec for mocking oracle return 
 
 ## PR Requests
 
+Before submitting a PR please run the test suite with `npm run test`.
+
+![Test run](https://github.com/ChaosLabsInc/chaos-labs-chainlink/blob/master/img/RunTests.png)
+
 - Ganache support
 - CLI improvements. Have an idea to make this repo more user friendly? Let us know, or better yet, make a pull request :)
