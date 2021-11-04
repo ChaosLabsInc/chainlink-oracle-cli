@@ -4,6 +4,7 @@ const QUESTION_PROMPT_NAMES = {
   MOCK_AGGREGATOR_SELECTION: "Mock Aggregator Selection",
   MOCK_AGGREGATOR_BASE_VALUE: "Mock Intial Value",
   SEARCH_TOKEN_PAIR: "Search by ticker",
+  VIEW_FULL_LIST: "View full list",
   MOCK_AGGREGATOR_VALUE_CHANGE: "Mock Value Change",
   MOCK_AGGREGATOR_CHANGE_PACE: "Mock Change Pace",
 };

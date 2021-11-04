@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 const hardhat_1 = require("hardhat");
 const hardhat_2 = __importDefault(require("hardhat"));
-const chaos_utils_1 = __importDefault(require("../chaos-utils"));
+const utils_1 = __importDefault(require("../utils"));
 const Constants_1 = __importDefault(require("../Constants"));
 const agents_1 = __importDefault(require("../agents"));
 const chalk_1 = __importDefault(require("chalk"));
@@ -74,7 +74,7 @@ function deployAllMockerContracts(data, value, step, pace) {
             deployMockerContract("AggregatorIncremental", data, value, step, pace),
             deployMockerContract("AggregatorVolatile", data, value, step, pace),
         ]);
-        chaos_utils_1.default.logTable(["aggregatorConstant", "aggregatorIncremental", "AggregatorVolatile"], [aggregatorConstant.address, aggregatorIncremental.address, AggregatorVolatile.address]);
+        utils_1.default.logTable(["aggregatorConstant", "aggregatorIncremental", "AggregatorVolatile"], [aggregatorConstant.address, aggregatorIncremental.address, AggregatorVolatile.address]);
         return {
             aggregatorConstant,
             aggregatorIncremental,
@@ -82,7 +82,7 @@ function deployAllMockerContracts(data, value, step, pace) {
         };
     });
 }
-function hijackAggregator(originAggregator, aggregatorManipulator) {
+function mockAggregator(originAggregator, aggregatorManipulator) {
     return __awaiter(this, void 0, void 0, function* () {
         const chainlinkAggregatorOwner = yield originAggregator.owner();
         yield agents_1.default.sendEthFromTo(Constants_1.default.ETH_WHALE_ADDRESS, chainlinkAggregatorOwner);
@@ -125,11 +125,11 @@ function demo() {
         let currentProxyAddress = Constants_1.default.CHAINLINK_ETH_USD_AGGREGATOR_ADDRESS;
         const originAggregator = yield chainlink_aggregator_1.default.genChainLinkAggregatorContract(currentProxyAddress);
         const data = yield originAggregator.latestRoundData();
-        const { aggregatorConstant, aggregatorIncremental, AggregatorVolatile } = yield deployAllMockerContracts(data, 0, 1000, 7);
+        const { aggregatorIncremental } = yield deployAllMockerContracts(data, 0, 1000, 7);
         const aggregatorManipulator = yield deployManiupulatorContract(currentProxyAddress, aggregatorIncremental.address);
-        chaos_utils_1.default.logTable(["aggregatorManipulator", "origin manipulator"], [aggregatorManipulator.address, currentProxyAddress]);
+        utils_1.default.logTable(["aggregatorManipulator", "origin manipulator"], [aggregatorManipulator.address, currentProxyAddress]);
         yield fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
-        yield hijackAggregator(originAggregator, aggregatorManipulator);
+        yield mockAggregator(originAggregator, aggregatorManipulator);
         yield fetchValue("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
     });
 }
@@ -139,8 +139,8 @@ function MockContract(contractName, currentProxyAddress, value, change, pace) {
         const data = yield originAggregator.latestRoundData();
         const mockerContract = yield deployMockerContract(contractName, data, value, change, pace);
         const aggregatorManipulator = yield deployManiupulatorContract(currentProxyAddress, mockerContract.address);
-        chaos_utils_1.default.logTable(["Aggregator Manipulator", "Mocker Aggregator", "Origin Aggregator"], [aggregatorManipulator.address, mockerContract.address, currentProxyAddress]);
-        yield hijackAggregator(originAggregator, aggregatorManipulator);
+        utils_1.default.logTable(["Aggregator Manipulator", "Mocker Aggregator", "Origin Aggregator"], [aggregatorManipulator.address, mockerContract.address, currentProxyAddress]);
+        yield mockAggregator(originAggregator, aggregatorManipulator);
     });
 }
 module.exports = {

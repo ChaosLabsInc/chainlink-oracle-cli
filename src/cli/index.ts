@@ -28,15 +28,17 @@ export = {
   },
   getEthereumProxiesForNetwork: async function getEthereumProxiesForNetwork(): Promise<{
     priceFeeds: Array<any>;
-    tokenPairsSliced: Array<any>;
-    inquirerChoices: Array<any>;
+    inquirerChoices: Array<string>;
   }> {
     const priceFeeds = await PriceFeeds.getEthereumProxiesForNetwork();
     const tokenPairsSliced = priceFeeds.map((pair: any) => `${pair.pair}`);
-    const inquirerChoices = [...tokenPairsSliced.slice(0, 4), "View full list", "Search by ticker"];
+    const inquirerChoices = [
+      ...tokenPairsSliced.slice(0, 4),
+      QUESTION_NAMES.VIEW_FULL_LIST,
+      QUESTION_NAMES.SEARCH_TOKEN_PAIR,
+    ];
     return {
       priceFeeds,
-      tokenPairsSliced,
       inquirerChoices,
     };
   },
@@ -44,12 +46,14 @@ export = {
     pairSelectionParsed: string;
     priceFeeds: Array<any>;
   }> {
-    const { priceFeeds, tokenPairsSliced, inquirerChoices } = await this.getEthereumProxiesForNetwork();
+    const { priceFeeds, inquirerChoices } = await this.getEthereumProxiesForNetwork();
     let pairSelection: any = await prompt(Questions.getConfigurablePriceFeedsQuestion(inquirerChoices));
     let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
-    if (Questions.showAllPriceFeedsSelected(pairSelectionParsed)) {
-      pairSelection = await prompt<number>(Questions.getAllPriceFeedsQuestion(tokenPairsSliced));
+
+    if (QUESTION_NAMES.VIEW_FULL_LIST === pairSelectionParsed) {
+      pairSelection = await prompt<number>(Questions.getAllPriceFeedsQuestion(priceFeeds.map((pf) => pf.pair)));
       pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+      return { pairSelectionParsed, priceFeeds };
     } else if (QUESTION_NAMES.SEARCH_TOKEN_PAIR === pairSelectionParsed) {
       let searchedTickerSelection = await prompt(Questions.getTokenPairSearchValue());
       let parsedQuery = searchedTickerSelection[QUESTION_NAMES.SEARCH_TOKEN_PAIR];
@@ -58,8 +62,21 @@ export = {
       });
       return this.selectTokenPairFiltered(filteredFeeds);
     }
+
     logBlue(YOU_SELECTED + pairSelectionParsed);
     return { pairSelectionParsed, priceFeeds };
+  },
+  selectAllTokenPairs: async function selectAllTokenPairs(providedFeeds: Array<any>): Promise<{
+    pairSelectionParsed: string;
+    priceFeeds: Array<any>;
+  }> {
+    const parsedArr = providedFeeds.map((pf) => pf.pair);
+    let pairSelection: any = await prompt(Questions.getConfigurablePriceFeedsQuestion(parsedArr));
+    let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+    return {
+      pairSelectionParsed,
+      priceFeeds: providedFeeds,
+    };
   },
   selectTokenPairFiltered: async function selectTokenPairFiltered(providedFeeds: Array<any>): Promise<{
     pairSelectionParsed: string;

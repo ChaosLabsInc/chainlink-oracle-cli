@@ -16,112 +16,132 @@ const figlet_1 = __importDefault(require("figlet"));
 const clear_1 = __importDefault(require("clear"));
 const inquirer_1 = __importDefault(require("inquirer"));
 const chainlink_data_feeds_1 = __importDefault(require("../chainlink-data-feeds"));
-const chalk_1 = __importDefault(require("chalk"));
-const QUESTION_PROMPT_NAMES = {
-    CONFIGURABLE_FEEDS: "Configurable Price Feeds",
-    MOCK_AGGREGATOR_SELECTION: "Mock Aggregator Selection",
-    MOCK_AGGREGATOR_BASE_VALUE: "Mock Intial Value",
-    MOCK_AGGREGATOR_VALUE_CHANGE: "Mock Value Change",
-    MOCK_AGGREGATOR_CHANGE_PACE: "Mock Change Pace",
-};
+const questions_1 = __importDefault(require("../questions"));
+const utils_1 = __importDefault(require("../utils"));
 function contactName(name) {
     return "Aggregator" + name;
 }
-function targetKey(pairSelectionParsed) {
-    return pairSelectionParsed.split(".")[0];
-}
+const YOU_SELECTED = "You selected ";
+const { targetKey, logBlue, logGreen, logYellow } = utils_1.default;
+const { QUESTION_NAMES } = questions_1.default;
+const { prompt } = inquirer_1.default;
 module.exports = {
     welcomeMessage: function () {
         return __awaiter(this, void 0, void 0, function* () {
             (0, clear_1.default)();
-            console.log(chalk_1.default.green("🎉 ✨ 🔥 Configured Chainlink Oracles by: 🎉 ✨ 🔥"));
-            console.log(chalk_1.default.blue(figlet_1.default.textSync("Chaos Labs")));
+            logGreen("🎉 ✨ 🔥 Mocked Chainlink Oracles by: 🎉 ✨ 🔥");
+            logBlue(figlet_1.default.textSync("Chaos Labs"));
+        });
+    },
+    getEthereumProxiesForNetwork: function getEthereumProxiesForNetwork() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const priceFeeds = yield chainlink_data_feeds_1.default.getEthereumProxiesForNetwork();
+            const tokenPairsSliced = priceFeeds.map((pair) => `${pair.pair}`);
+            const inquirerChoices = [
+                ...tokenPairsSliced.slice(0, 4),
+                QUESTION_NAMES.VIEW_FULL_LIST,
+                QUESTION_NAMES.SEARCH_TOKEN_PAIR,
+            ];
+            return {
+                priceFeeds,
+                inquirerChoices,
+            };
         });
     },
     selectTokenPairPricesToMock: function selectTokenPairPricesToMock() {
         return __awaiter(this, void 0, void 0, function* () {
-            // ******************** GET PRICE FEED ********************
-            const pricefeeds = yield chainlink_data_feeds_1.default.getEthereumProxiesForNetwork();
-            const feedChoices = pricefeeds.map((pair, i) => `${i}. ${pair.pair}`);
-            const subsetPFs = feedChoices.slice(0, 5);
-            subsetPFs.push("6. View full list");
-            let questions = [
-                {
-                    type: "rawlist",
-                    name: QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS,
-                    message: "Select price feeds:",
-                    choices: subsetPFs,
-                    default: [],
-                },
-            ];
-            let pairSelection = yield inquirer_1.default.prompt(questions);
-            let pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
-            if (targetKey(pairSelectionParsed) == "6") {
-                //more options:
-                let questions = [
-                    {
-                        type: "rawlist",
-                        name: QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS,
-                        message: "Select price feeds:",
-                        choices: feedChoices,
-                    },
-                ];
-                pairSelection = yield inquirer_1.default.prompt(questions);
-                pairSelectionParsed = pairSelection[QUESTION_PROMPT_NAMES.CONFIGURABLE_FEEDS];
+            const { priceFeeds, inquirerChoices } = yield this.getEthereumProxiesForNetwork();
+            let pairSelection = yield prompt(questions_1.default.getConfigurablePriceFeedsQuestion(inquirerChoices));
+            let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+            if (QUESTION_NAMES.VIEW_FULL_LIST === pairSelectionParsed) {
+                pairSelection = yield prompt(questions_1.default.getAllPriceFeedsQuestion(priceFeeds.map((pf) => pf.pair)));
+                pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+                return { pairSelectionParsed, priceFeeds };
             }
-            console.log(chalk_1.default.blue("You selected " + pairSelectionParsed));
-            // ******************** GET MOCK FN ********************
-            questions = [
-                {
-                    type: "list",
-                    name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION,
-                    message: "Select a function for the Mock Oracle",
-                    choices: ["Constant", "Incremental", "Volatile", "Original"],
-                    default: [],
-                },
-            ];
-            const mockFnSelection = yield inquirer_1.default.prompt(questions);
-            console.log(chalk_1.default.blue("You selected " + mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION]));
-            // ******************** GET VALUES FOR MOCK ********************
-            questions = [
-                {
-                    type: "number",
-                    name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE,
-                    message: "Select intial value of mock",
-                    default: [0], //TODO - current value retrieved.
-                },
-            ];
-            const valueSelection = yield inquirer_1.default.prompt(questions);
-            console.log(chalk_1.default.blue("You selected " + valueSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE]));
-            questions = [
-                {
-                    type: "number",
-                    name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE,
-                    message: "Select the change in price each tick",
-                    default: [0],
-                },
-            ];
-            const valueChangeSelection = yield inquirer_1.default.prompt(questions);
-            console.log(chalk_1.default.blue("You selected " + valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]));
-            questions = [
-                {
-                    type: "number",
-                    name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE,
-                    message: "Select the tick frequency - counted in blocks on chain",
-                    default: [0],
-                },
-            ];
-            const TickSelection = yield inquirer_1.default.prompt(questions);
-            console.log(chalk_1.default.blue("You selected " + TickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]));
-            let originAddress = pricefeeds[targetKey(pairSelectionParsed)].proxy;
-            let name = contactName(mockFnSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_SELECTION]);
-            console.log(chalk_1.default.blue(`Hijacking pair proxy ${pairSelectionParsed.substring(targetKey(pairSelectionParsed))} at address ${originAddress}`));
-            yield deploy_1.default.fetchValue(originAddress);
-            yield deploy_1.default.MockContract(name, originAddress, valueSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE], valueChangeSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE], TickSelection[QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]);
-            yield deploy_1.default.fetchValue(originAddress);
-            console.log(chalk_1.default.blue(`Let's get to work 💼 😏 ...`));
-            console.log(chalk_1.default.yellow(figlet_1.default.textSync("Celebrate")));
-            console.log(chalk_1.default.blue(`You are a shadowy super code 🔥 ✨ 😏 ...`));
+            else if (QUESTION_NAMES.SEARCH_TOKEN_PAIR === pairSelectionParsed) {
+                let searchedTickerSelection = yield prompt(questions_1.default.getTokenPairSearchValue());
+                let parsedQuery = searchedTickerSelection[QUESTION_NAMES.SEARCH_TOKEN_PAIR];
+                const filteredFeeds = priceFeeds.filter((pf) => {
+                    return pf.pair.toLowerCase().includes(parsedQuery.toLowerCase());
+                });
+                return this.selectTokenPairFiltered(filteredFeeds);
+            }
+            logBlue(YOU_SELECTED + pairSelectionParsed);
+            return { pairSelectionParsed, priceFeeds };
+        });
+    },
+    selectAllTokenPairs: function selectAllTokenPairs(providedFeeds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parsedArr = providedFeeds.map((pf) => pf.pair);
+            let pairSelection = yield prompt(questions_1.default.getConfigurablePriceFeedsQuestion(parsedArr));
+            let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+            return {
+                pairSelectionParsed,
+                priceFeeds: providedFeeds,
+            };
+        });
+    },
+    selectTokenPairFiltered: function selectTokenPairFiltered(providedFeeds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parsedArr = providedFeeds.map((pf) => pf.pair);
+            let pairSelection = yield prompt(questions_1.default.getConfigurablePriceFeedsQuestion(parsedArr));
+            let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+            return {
+                pairSelectionParsed,
+                priceFeeds: providedFeeds,
+            };
+        });
+    },
+    selectMockFunction: function selectMockFunction() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const mockFnSelection = yield prompt(questions_1.default.getMockFunctionQuestion());
+            logBlue(YOU_SELECTED + mockFnSelection[QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION]);
+            return mockFnSelection[QUESTION_NAMES.MOCK_AGGREGATOR_SELECTION];
+        });
+    },
+    selectInitialValue: function selectInitialValue() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const initValue = yield prompt(questions_1.default.getSelectInitialValueQuestion());
+            logBlue(YOU_SELECTED + initValue[QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE]);
+            return initValue;
+        });
+    },
+    selectPriceChange: function selectPriceChange() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const valueChangeSelection = yield prompt(questions_1.default.getPriceChangeQuestion());
+            logBlue(YOU_SELECTED + valueChangeSelection[QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE]);
+            return valueChangeSelection;
+        });
+    },
+    selectBlockUpdateIntervalSize: function selectBlockUpdateIntervalSize() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const blockUpdate = yield prompt(questions_1.default.getPriceChangeFrequency());
+            logBlue(YOU_SELECTED + blockUpdate[QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]);
+            return blockUpdate;
+        });
+    },
+    deploy: function deploy(pairSelectionParsed, priceFeeds, mockFunction, initValue, valueChangeSelection, tickSelection) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const selectedPriceFeed = priceFeeds.find((pf) => pf.pair === pairSelectionParsed);
+            if (selectedPriceFeed === undefined) {
+                throw new Error("Could not find price feed...");
+            }
+            const { proxy } = selectedPriceFeed;
+            let name = contactName(mockFunction);
+            logGreen(`Configuring pair proxy ${pairSelectionParsed.substring(Number(targetKey(pairSelectionParsed)))} at address ${proxy}`);
+            yield deploy_1.default.fetchValue(proxy);
+            console.log(name, proxy, initValue[QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE], valueChangeSelection[QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE], tickSelection[QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]);
+            yield deploy_1.default.MockContract(name, proxy, 
+            // @ts-ignore
+            initValue[QUESTION_NAMES.MOCK_AGGREGATOR_BASE_VALUE], 
+            // @ts-ignore
+            valueChangeSelection[QUESTION_NAMES.MOCK_AGGREGATOR_VALUE_CHANGE], 
+            // @ts-ignore
+            tickSelection[QUESTION_NAMES.MOCK_AGGREGATOR_CHANGE_PACE]);
+            yield deploy_1.default.fetchValue(proxy);
+            logBlue(`Let's get to work 💼 😏 ...`);
+            logYellow(figlet_1.default.textSync("Celebrate"));
+            logBlue(`You are a shadowy super code 🔥 ✨ 😏 ...`);
         });
     },
 };
