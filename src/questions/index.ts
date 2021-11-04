@@ -3,6 +3,7 @@ const QUESTION_PROMPT_NAMES = {
   CONFIGURABLE_FEEDS: "Configurable Price Feeds",
   MOCK_AGGREGATOR_SELECTION: "Mock Aggregator Selection",
   MOCK_AGGREGATOR_BASE_VALUE: "Mock Intial Value",
+  SEARCH_TOKEN_PAIR: "Search by ticker",
   MOCK_AGGREGATOR_VALUE_CHANGE: "Mock Value Change",
   MOCK_AGGREGATOR_CHANGE_PACE: "Mock Change Pace",
 };
@@ -39,6 +40,16 @@ export = {
         name: QUESTION_PROMPT_NAMES.MOCK_AGGREGATOR_BASE_VALUE,
         message: "Select intial value of mock",
         default: [0], //TODO - current value retrieved.
+      },
+    ];
+  },
+  getTokenPairSearchValue: function getTokenPairSearchValue() {
+    return [
+      {
+        type: "string",
+        name: QUESTION_PROMPT_NAMES.SEARCH_TOKEN_PAIR,
+        message: "Select intial value of mock",
+        default: "",
       },
     ];
   },

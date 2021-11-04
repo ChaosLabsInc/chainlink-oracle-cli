@@ -47,11 +47,18 @@ export = {
     const { priceFeeds, tokenPairsSliced, inquirerChoices } = await this.getEthereumProxiesForNetwork();
     let pairSelection: any = await prompt(Questions.getConfigurablePriceFeedsQuestion(inquirerChoices));
     let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+    console.log("Omer 1 ", pairSelectionParsed);
     if (Questions.showAllPriceFeedsSelected(pairSelectionParsed)) {
       pairSelection = await prompt<number>(Questions.getAllPriceFeedsQuestion(tokenPairsSliced));
       pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
-    } else if (Questions.showSearchPriceFeedsSelected(pairSelectionParsed)) {
-      // TODO:
+    } else if (QUESTION_NAMES.SEARCH_TOKEN_PAIR === pairSelectionParsed) {
+      let searchQuery: any = await prompt(Questions.getTokenPairSearchValue());
+      let parsedQuery = searchQuery[QUESTION_NAMES.SEARCH_TOKEN_PAIR];
+      const filteredFeeds = priceFeeds.filter((pf) => {
+        return pf.pair.includes(parsedQuery);
+      });
+      console.log("Filtered feeds ", filteredFeeds);
+      return { pairSelectionParsed, priceFeeds: filteredFeeds };
     }
     logBlue(YOU_SELECTED + pairSelectionParsed);
     return { pairSelectionParsed, priceFeeds };
