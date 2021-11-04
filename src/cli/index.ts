@@ -47,21 +47,31 @@ export = {
     const { priceFeeds, tokenPairsSliced, inquirerChoices } = await this.getEthereumProxiesForNetwork();
     let pairSelection: any = await prompt(Questions.getConfigurablePriceFeedsQuestion(inquirerChoices));
     let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
-    console.log("Omer 1 ", pairSelectionParsed);
     if (Questions.showAllPriceFeedsSelected(pairSelectionParsed)) {
       pairSelection = await prompt<number>(Questions.getAllPriceFeedsQuestion(tokenPairsSliced));
       pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
     } else if (QUESTION_NAMES.SEARCH_TOKEN_PAIR === pairSelectionParsed) {
-      let searchQuery: any = await prompt(Questions.getTokenPairSearchValue());
-      let parsedQuery = searchQuery[QUESTION_NAMES.SEARCH_TOKEN_PAIR];
+      let searchedTickerSelection = await prompt(Questions.getTokenPairSearchValue());
+      let parsedQuery = searchedTickerSelection[QUESTION_NAMES.SEARCH_TOKEN_PAIR];
       const filteredFeeds = priceFeeds.filter((pf) => {
-        return pf.pair.includes(parsedQuery);
+        return pf.pair.toLowerCase().includes(parsedQuery.toLowerCase());
       });
-      console.log("Filtered feeds ", filteredFeeds);
-      return { pairSelectionParsed, priceFeeds: filteredFeeds };
+      return this.selectTokenPairFiltered(filteredFeeds);
     }
     logBlue(YOU_SELECTED + pairSelectionParsed);
     return { pairSelectionParsed, priceFeeds };
+  },
+  selectTokenPairFiltered: async function selectTokenPairFiltered(providedFeeds: Array<any>): Promise<{
+    pairSelectionParsed: string;
+    priceFeeds: Array<any>;
+  }> {
+    const parsedArr = providedFeeds.map((pf) => pf.pair);
+    let pairSelection: any = await prompt(Questions.getConfigurablePriceFeedsQuestion(parsedArr));
+    let pairSelectionParsed = pairSelection[QUESTION_NAMES.CONFIGURABLE_FEEDS];
+    return {
+      pairSelectionParsed,
+      priceFeeds: providedFeeds,
+    };
   },
   selectMockFunction: async function selectMockFunction(): Promise<any> {
     const mockFnSelection: any = await prompt(Questions.getMockFunctionQuestion());

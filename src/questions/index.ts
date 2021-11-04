@@ -48,7 +48,7 @@ export = {
       {
         type: "string",
         name: QUESTION_PROMPT_NAMES.SEARCH_TOKEN_PAIR,
-        message: "Select intial value of mock",
+        message: "Type token ticker",
         default: "",
       },
     ];
