@@ -26,14 +26,14 @@ Oracle manipulation is an additional attack vector. With this method, malicious 
 
 With the ability to manipulate Chainlink Oracle return values, simulating such scenarios in your local development environment is possible.
 
-## <a name="quickstart"></a> Prerequisities && QuickStart
+## <a name="quickstart"></a> QuickStart
 
-1. `ts-node` to run typescript (`npm i -G ts-node`)
+1. `ts-node` to run typescript (`npm i -g ts-node`)
 2. Alchemy API key for mainnet fork access
 3. `npm i` - Installing project libs.
 4. `npx hardhat compile` - Compiling solidity contracts
-5. `npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<YOUR_KEY>` - Spinning a mainnet fork locally.
-6. `ts-node --files index.ts` - Start CLI!(--files can be permenantly replace with `export TS_NODE_FILES=true`)
+5. **In a separate terminal window** run: `npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<YOUR_KEY>` - Spinning a mainnet fork locally.
+6. `npm run start`
 
 ## Recommended Usage
 
