@@ -93,7 +93,11 @@ contract AggregatorVolatile is AggregatorV3Interface {
         if (NegativeCycle) {
             direction = -1;
         }
-        int256 pace = int256(((block.number - s_block) / s_stepBlocks));
+
+        int256 pace = 0;
+        if (s_stepBlocks != 0) {
+            pace = int256(((block.number - s_block) / s_stepBlocks));
+        }
         int256 mocked_answer = s_answer + direction * s_stepChange * pace;
         return (
             _roundId,
@@ -116,9 +120,13 @@ contract AggregatorVolatile is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
-        int256 mocked_answer = s_answer +
-            s_stepChange *
-            int256(((block.number - s_block) / s_stepBlocks));
+        int256 mocked_answer = s_answer;
+        if (s_stepBlocks != 0) {
+            mocked_answer =
+                s_answer +
+                s_stepChange *
+                int256(((block.number - s_block) / s_stepBlocks));
+        }
         return (
             s_roundId,
             mocked_answer,
