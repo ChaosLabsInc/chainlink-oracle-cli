@@ -9,7 +9,7 @@ const CHAINLINK_DOCS_CONSTANTS = {
   },
   PAYLOAD_KEYS: {
     ARBITRUM: "arbitrum-price-feeds",
-    ETHEREUM: "ethereum-addresses",
+    ETHEREUM: "ethereum",
     BSC: "binance-smart-chain-addresses-price",
     FANTOM: "fantom-price-feeds",
     MATIC: "matic-addresses",
